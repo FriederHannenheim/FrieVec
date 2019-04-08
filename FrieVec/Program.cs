@@ -9,74 +9,72 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 
+/* todo:
+-Curves
+-Text
+-Pixels
+*/
 namespace FrieVec
 {
-    class Program
+    public class Form1 : Form
     {
-        Color selColor = Color.Black;
-        public List<String> cmds;
-        bool Drawing;
-        Vector2i startPoint;
-        String selected = "";
-        String hovering = "";
-        RenderWindow window;
+        String Filename = "";
+        bool drawing;
+        String selected;
+        Vector2i startpos;
         Image image;
         Image image2;
-        int w, h;
-        public void Run(uint W, uint H, String[] commands)
+        Color selColor = Color.White;
+        uint W, H;
+        RenderWindow window;
+        List<String> cmds;
+        String[] commands = new String[1];
+        public Form1()
         {
-            cmds = commands.ToList();
-            w = (int)W;
-            h = (int)H;
-            window = new RenderWindow(new SFML.Window.VideoMode(W + 30, H), "FrieVec");
-            image = new Image(W, H, Color.Black);
-            Texture tex = new Texture(W, H);
+
+        }
+        public void Run()
+        {
+            Button button1 = new Button();
+            button1.Size = new System.Drawing.Size(30, 30);
+            button1.Location = new System.Drawing.Point(0, 0);
+            button1.Image = System.Drawing.Image.FromFile(@"Assets/Line.png");
+            button1.BackColor = System.Drawing.Color.FromArgb(30, 30, 30);
+            Controls.Add(button1);
+            button1.Click += new EventHandler(sLine);
+
+            Button button2 = new Button();
+            button2.Size = new System.Drawing.Size(30, 30);
+            button2.Location = new System.Drawing.Point(0, 30);
+            button2.Image = System.Drawing.Image.FromFile(@"Assets/floodfill.png");
+            button2.BackColor = System.Drawing.Color.FromArgb(30, 30, 30);
+            Controls.Add(button2);
+            button2.Click += new EventHandler(sFill);
+
+            Button button3 = new Button();
+            button3.Size = new System.Drawing.Size(30, 30);
+            button3.Location = new System.Drawing.Point(0, 60);
+            button3.Image = System.Drawing.Image.FromFile(@"Assets/cp.png");
+            button3.BackColor = System.Drawing.Color.FromArgb(30, 30, 30);
+            Controls.Add(button3);
+            button3.Click += new EventHandler(CP);
+
+            DrawingSurface rendersurface = new DrawingSurface();
+            rendersurface.Size = new System.Drawing.Size((int)W, (int)H);
+            rendersurface.Location = new System.Drawing.Point(30, 0);
+            Controls.Add(rendersurface);
+
+            image = new Image((uint)W, (uint)H, Color.Black);
+            Texture tex = new Texture((uint)W, (uint)H);
             Sprite sprite = new Sprite();
-            sprite.Position = new Vector2f(30, 0);
 
             image2 = new Image(W, H, Color.Transparent);
             Texture tex2 = new Texture(W, H);
             Sprite sprite2 = new Sprite();
-            sprite2.Position = new Vector2f(30, 0);
 
-            #region Line
-            RectangleShape Slined = new RectangleShape(new Vector2f(30, 30));
-            Slined.FillColor = new Color(200, 200, 200);
-            RectangleShape Sline = new RectangleShape(new Vector2f(45, 3));
-            Sline.Position = new Vector2f(0, -3);
-            Sline.Rotation = 45;
-            #endregion
-            #region Fill
-            RectangleShape Slaned = new RectangleShape(new Vector2f(30, 30));
-            Slaned.FillColor = new Color(200, 200, 200);
-            Slaned.Position = new Vector2f(0, 30);
-
-
-            Texture Mussolini = new Texture(@"Assets/floodfill.png");
-            Sprite Stalin = new Sprite();
-            Stalin.Texture = Mussolini;
-            Stalin.Position = new Vector2f(0, 30);
-            Stalin.Scale = new Vector2f(0.7f, 0.7f);
-            #endregion
-            #region Colorpicker
-            RectangleShape Cpf = new RectangleShape(new Vector2f(30, 30));
-            Cpf.FillColor = new Color(200, 200, 200);
-            Cpf.Position = new Vector2f(0, 60);
-            Texture Cp = new Texture(@"Assets/cp.png");
-            Sprite Cps = new Sprite();
-            Cps.Texture = Cp;
-            Cps.Position = new Vector2f(3.5f, 63.5f);
-            Cps.Scale = new Vector2f(0.05f, 0.05f);
-            #endregion
-
-            RectangleShape Toolbar = new RectangleShape(new Vector2f(1000, 500));
-            Toolbar.FillColor = new Color(230, 230, 230);
-            Toolbar.Size = new Vector2f(30, (int)H);
-
-
-            for (int i = 1; i < commands.Length; i++)
+            for (int i = 1; i < cmds.Count; i++)
             {
-                String[] ccommand = commands[i].Split(',');
+                String[] ccommand = cmds[i].Split(',');
                 switch (ccommand[0])
                 {
                     case "l":
@@ -87,136 +85,95 @@ namespace FrieVec
                         break;
                 }
             }
-            try
-            {
 
-            }
-            catch
-            {
-                throw new Exception("Corrupted file");
-
-            }
-
+            window = new RenderWindow(rendersurface.Handle);
             window.MouseButtonPressed += Window_MouseButtonPressed;
-            selected = "line";
-            while (window.IsOpen)
+            Console.WriteLine("Hoi2");
+            while (Visible)
             {
                 image2 = new Image(W, H, Color.Transparent);
-                Slaned.FillColor = new Color(200, 200, 200);
-                Slined.FillColor = new Color(200, 200, 200);
-                Cpf.FillColor = new Color(200, 200, 200);
-                hovering = "";
-
-                FloatRect rect = Slined.GetGlobalBounds();
-                FloatRect rect2 = Slaned.GetGlobalBounds();
-                FloatRect rect3 = Cpf.GetGlobalBounds();
-                if (rect.Contains(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y))
+                if (drawing)
                 {
-                    Slined.FillColor = new Color(160, 160, 160);
-                    hovering = "line";
+                    DrawLine(startpos.X, startpos.Y, SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor, "i2");
                 }
-                if (rect2.Contains(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y))
-                {
-                    Slaned.FillColor = new Color(160, 160, 160);
-                    hovering = "fill";
-                }
-                if (rect3.Contains(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y))
-                {
-                    Cpf.FillColor = new Color(160, 160, 160);
-                    hovering = "CP";
-                }
-                if (sprite.GetGlobalBounds().Contains(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y))
-                {
-                    hovering = "canvas";
-                }
-                if (selected != "fill")
-                    Slined.FillColor = new Color(100, 100, 100);
-                else if (selected != "line")
-                    Slaned.FillColor = new Color(100, 100, 100);
-                else if (selected != "CP")
-                    Cpf.FillColor = new Color(100, 100, 100);
-                if (Drawing)
-                {
-                    DrawLine(startPoint.X, startPoint.Y, SFML.Window.Mouse.GetPosition(window).X - 30, SFML.Window.Mouse.GetPosition(window).Y, selColor, "i2");
-                }
-
-
-                window.DispatchEvents();
-                window.Closed += new EventHandler(OnClose);
-
+                Application.DoEvents();
+                window.DispatchEvents(); // handle SFML events - NOTE this is still required when SFML is hosted in another window
                 tex.Update(image);
                 tex2.Update(image2);
                 sprite.Texture = tex;
                 sprite2.Texture = tex2;
-                window.Clear();
-                window.Draw(Toolbar);
-                window.Draw(Slined);
-                window.Draw(Sline);
-                window.Draw(Slaned);
-                window.Draw(Cpf);
-                window.Draw(Cps);
-                window.Draw(Stalin);
+                window.Clear(); // clear our SFML RenderWindow
                 window.Draw(sprite);
                 window.Draw(sprite2);
-                window.Display();
+                window.Display();                         // display what SFML has drawn to the screen
             }
         }
 
-        private void Window_MouseButtonPressed(object sender, SFML.Window.MouseButtonEventArgs e)
+
+
+        [STAThread]
+        static void Main()
         {
-            if (e.Button == SFML.Window.Mouse.Button.Left)
-            {
+            Form1 p = new Form1();
+            uint W = 400;
+            uint H = 400;
 
-                if (hovering != "canvas" && hovering != "CP")
-                {
-                    selected = hovering;
-                }
-                else
-                {
-                    if (hovering == "CP")
-                    {
-                        ColorDialog Dio = new ColorDialog();
-                        Dio.AllowFullOpen = true;
-                        Dio.ShowDialog();
-                        selColor = new Color(Dio.Color.R, Dio.Color.G, Dio.Color.B);
-                    }
-                    else if (selected == "line" && !Drawing)
-                    {
-                        startPoint = SFML.Window.Mouse.GetPosition(window) + new Vector2i(-30, 0);
-                        Drawing = true;
-                    }
-                    else if (selected == "line")
-                    {
-                        DrawLine(startPoint.X, startPoint.Y, SFML.Window.Mouse.GetPosition(window).X - 30, SFML.Window.Mouse.GetPosition(window).Y, selColor);
-                        cmds.Add("l," + startPoint.X + "," + startPoint.Y + "," + (SFML.Window.Mouse.GetPosition(window).X - 30) + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + selColor.R + "," + selColor.G + "," + selColor.B);
-                        Drawing = false;
-                    }
-                    else if (selected == "fill")
-                    {
-                        Fill(SFML.Window.Mouse.GetPosition(window).X - 30, SFML.Window.Mouse.GetPosition(window).Y, selColor);
-                        cmds.Add("f," + (SFML.Window.Mouse.GetPosition(window).X - 30) + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + selColor.R + "," + selColor.G + "," + selColor.B);
-                    }
+            #region veryBadcode
+            p.Size = new System.Drawing.Size((int)W + 30, (int)H);
+            Button button5 = new Button();
+            button5.Size = new System.Drawing.Size(30, 30);
+            button5.Location = new System.Drawing.Point(0, 0);
+            button5.Image = System.Drawing.Image.FromFile(@"Assets/Folder.png");
+            button5.BackColor = System.Drawing.Color.FromArgb(30, 30, 30);
+            p.Controls.Add(button5);
+            button5.Click += new EventHandler(p.Load);
 
-                }
-            }
-            else if (e.Button == SFML.Window.Mouse.Button.Right)
+            Button button6 = new Button();
+            button6.Size = new System.Drawing.Size(30, 30);
+            button6.Location = new System.Drawing.Point(0, 30);
+            button6.BackgroundImage = System.Drawing.Image.FromFile(@"Assets/new.png");
+            button6.BackgroundImageLayout = ImageLayout.Zoom;
+            button6.BackColor = System.Drawing.Color.FromArgb(30, 30, 30);
+            p.Controls.Add(button6);
+            button6.Click += new EventHandler(p.New);
+            p.BackColor = System.Drawing.Color.FromArgb(50, 50, 50);
+
+
+            p.Show();
+
+            while (p.Filename == "" && p.Visible)
             {
-                if (hovering == "canvas")
-                {
-                    if (selected == "line" && Drawing)
-                    {
-                        DrawLine(startPoint.X, startPoint.Y, SFML.Window.Mouse.GetPosition(window).X - 30, SFML.Window.Mouse.GetPosition(window).Y, selColor);
-                        cmds.Add("l," + startPoint.X + "," + startPoint.Y + "," + (SFML.Window.Mouse.GetPosition(window).X - 30) + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + selColor.R + "," + selColor.G + "," + selColor.B);
-                        startPoint = SFML.Window.Mouse.GetPosition(window) + new Vector2i(-30, 0);
-                    }
-                }
+                Application.DoEvents();
             }
-            else if (e.Button == SFML.Window.Mouse.Button.Middle)
+            if (!p.Visible)
             {
-                Drawing = false;
+                return;
             }
+            #endregion
+            p.Controls.Remove(button5);
+            p.Controls.Remove(button6);
+
+            W = (uint)Int32.Parse(p.commands[0].Split(',')[0]);//read resolution
+            H = (uint)Int32.Parse(p.commands[0].Split(',')[1]);
+            p.Text = p.Filename.Split("\\".ToCharArray())[p.Filename.Split("\\".ToCharArray()).Count() - 1];
+
+
+            p.cmds = p.commands.ToList();
+            p.W = W;
+            p.H = H;
+            p.Size = new System.Drawing.Size((int)W + 30, (int)H);
+
+
+            p.Run();
+            for (int i = 0; i < p.cmds.Count - 1; i++)
+            {
+                p.cmds[i] += ";";
+            }
+
+
+            System.IO.File.WriteAllLines(p.Filename, p.cmds);
+
         }
-
         private void Fill(int x, int y, Color color)
         {
             Stack<Vector2i> pixels = new Stack<Vector2i>();
@@ -227,7 +184,7 @@ namespace FrieVec
             while (pixels.Count > 0)
             {
                 Vector2i a = pixels.Pop();
-                if (a.X < w && a.X > -1 && a.Y < h && a.Y > -1)
+                if (a.X < W && a.X > -1 && a.Y < H && a.Y > -1)
                 {
                     if (image.GetPixel((uint)a.X, (uint)a.Y) == target)
                     {
@@ -242,7 +199,7 @@ namespace FrieVec
         }
         private void DrawLine(int x1, int y1, int x2, int y2, Color color, string iage = "i1")
         {
-            if (x2 < 0 || x2 > w || y2 < 0 || y2 > h)
+            if (x2 < 0 || x2 > W || y2 < 0 || y2 > H)
                 return;
             int dx = Math.Abs(x2 - x1), sx = x1 < x2 ? 1 : -1;
             int dy = Math.Abs(y2 - y1), sy = y1 < y2 ? 1 : -1;
@@ -259,81 +216,119 @@ namespace FrieVec
                 if (e2 < dy) { err += dx; y1 += sy; }
             }
         }
-        void OnClose(object sender, EventArgs e)
+        private void sLine(object sender, EventArgs e)
         {
-
-            window.Close();
+            selected = "line";
         }
-    }
-    class Hey
-    {
-        static void Main(string[] args)
+        private void sFill(object sender, EventArgs e)
         {
-            uint W;
-            uint H;
-            String[] commands = new String[1];
-            String Filename = "";
-            MessageBoxButtons buttons = MessageBoxButtons.YesNo;
-            if (MessageBox.Show("Do you want to create a new File?", "", buttons: buttons) == System.Windows.Forms.DialogResult.Yes)
+            selected = "fill";
+        }
+        private void CP(object sender, EventArgs e)
+        {
+            ColorDialog Dio = new ColorDialog();
+            Dio.AllowFullOpen = true;
+            Dio.ShowDialog();
+            selColor = new Color(Dio.Color.R, Dio.Color.G, Dio.Color.B);
+        }
+        private void Window_MouseButtonPressed(object sender, SFML.Window.MouseButtonEventArgs e)
+        {
+            if (e.Button == SFML.Window.Mouse.Button.Left)
             {
-                using (SaveFileDialog saveFileDialog1 = new SaveFileDialog())
+                if (selected == "fill")
                 {
-                    saveFileDialog1.Filter = "FrieVec Image|*.frvc";
-                    saveFileDialog1.Title = "Create an Image File";
-                    var t = new Thread((ThreadStart)(() =>
-                    {
-                        saveFileDialog1.ShowDialog();
-                    }));
-                    t.SetApartmentState(ApartmentState.STA);
-                    t.Start();
-                    t.Join();
-                    FileStream dulf = System.IO.File.Create(saveFileDialog1.FileName);
-                    dulf.Close();
-                    Filename = saveFileDialog1.FileName;
-                    commands[0] = Interaction.InputBox("Input resolution", "New File", "500,500");
-                    Console.Write(commands[0]);
-                    t.Interrupt();
+                    Fill(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor);
+                    cmds.Add("f," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + selColor.R + "," + selColor.G + "," + selColor.B);
+                }
+                else if (drawing)
+                {
+                    drawing = false;
+                    DrawLine(startpos.X, startpos.Y, SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor);
+                    cmds.Add("l," + startpos.X + "," + startpos.Y + "," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + selColor.R + "," + selColor.G + "," + selColor.B);
+                }
+                else
+                {
+                    startpos = SFML.Window.Mouse.GetPosition(window);
+                    drawing = true;
                 }
             }
-            else
+            if (e.Button == SFML.Window.Mouse.Button.Right)
             {
-                OpenFileDialog openFileDialog = new OpenFileDialog();
-                openFileDialog.Filter = "FrieVec Image (*.frvc)|*.frvc";
-                openFileDialog.FilterIndex = 1;
-                openFileDialog.RestoreDirectory = true;
+                if (drawing)
+                {
+                    DrawLine(startpos.X, startpos.Y, SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor);
+
+                    cmds.Add("l," + startpos.X + "," + startpos.Y + "," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + selColor.R + "," + selColor.G + "," + selColor.B);
+                    startpos = SFML.Window.Mouse.GetPosition(window);
+                }
+            }
+            if (e.Button == SFML.Window.Mouse.Button.Middle)
+            {
+                drawing = false;
+            }
+        }
+        private void Load(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "FrieVec Image (*.frvc)|*.frvc";
+            openFileDialog.FilterIndex = 1;
+            openFileDialog.RestoreDirectory = true;
+            var t = new Thread((ThreadStart)(() =>
+            {
+                openFileDialog.ShowDialog();
+            }));
+            t.SetApartmentState(ApartmentState.STA);
+            t.Start();
+            t.Join();
+            Filename = openFileDialog.FileName;
+            t.Interrupt();
+            using (StreamReader fileStream = new StreamReader(Filename))//Read from file
+            {
+                String FullText = fileStream.ReadToEnd();
+                FullText = Regex.Replace(FullText, @"\t|\n|\r", "");
+                commands = FullText.Split(';');
+                if (commands.Length < 2)
+                {
+
+                }
+            }
+        }
+        private void New(object sender, EventArgs e)
+        {
+            using (SaveFileDialog saveFileDialog1 = new SaveFileDialog())
+            {
+                saveFileDialog1.Filter = "FrieVec Image|*.frvc";
+                saveFileDialog1.Title = "Create an Image File";
                 var t = new Thread((ThreadStart)(() =>
                 {
-                    openFileDialog.ShowDialog();
+                    saveFileDialog1.ShowDialog();
                 }));
                 t.SetApartmentState(ApartmentState.STA);
                 t.Start();
                 t.Join();
-                Filename = openFileDialog.FileName;
-                using (StreamReader fileStream = new StreamReader(Filename))//Read from file
-                {
-                    String FullText = fileStream.ReadToEnd();
-                    FullText = Regex.Replace(FullText, @"\t|\n|\r", "");
-                    commands = FullText.Split(';');
-                    if (commands.Length < 2)
-                    {
-
-                    }
-                }
-
-
+                FileStream dulf = System.IO.File.Create(saveFileDialog1.FileName);
+                dulf.Close();
+                Filename = saveFileDialog1.FileName;
+                commands[0] = Interaction.InputBox("Input resolution", "New File", "500,500");
+                t.Interrupt();
             }
-            W = (uint)Int32.Parse(commands[0].Split(',')[0]);//read resolution
-            H = (uint)Int32.Parse(commands[0].Split(',')[1]);
-
-            Program p = new Program();
-            p.Run(W, H, commands);
-            for (int i = 0; i < p.cmds.Count - 1; i++)
-            {
-                p.cmds[i] += ";";
-            }
-
-
-            System.IO.File.WriteAllLines(Filename, p.cmds);
         }
     }
+    public class DrawingSurface : System.Windows.Forms.Control
+    {
+        protected override void OnPaint(System.Windows.Forms.PaintEventArgs e)
+        {
+            // don't call base.OnPaint(e) to prevent forground painting
+            // base.OnPaint(e);
+        }
+        protected override void OnPaintBackground(System.Windows.Forms.PaintEventArgs pevent)
+        {
+            // don't call base.OnPaintBackground(e) to prevent background painting
+            //base.OnPaintBackground(pevent);
+        }
+    }
+
 }
+
+
+
