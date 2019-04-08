@@ -83,6 +83,9 @@ namespace FrieVec
                     case "f":
                         Fill(int.Parse(ccommand[1]), int.Parse(ccommand[2]), new Color(Convert.ToByte(int.Parse(ccommand[3])), Convert.ToByte(int.Parse(ccommand[4])), Convert.ToByte(int.Parse(ccommand[5]))));
                         break;
+                    case "c":
+                        DrawCircle(int.Parse(ccommand[1]), int.Parse(ccommand[2]),int.Parse(ccommand[3]),new Color(Convert.ToByte(int.Parse(ccommand[4])), Convert.ToByte(int.Parse(ccommand[5])), Convert.ToByte(int.Parse(ccommand[6]))));
+                        break;
                 }
             }
 
@@ -215,6 +218,38 @@ namespace FrieVec
                 if (e2 > -dx) { err -= dy; x1 += sx; }
                 if (e2 < dy) { err += dx; y1 += sy; }
             }
+        }
+        void DrawCircle(int xc, int yc, int r, Color color)
+        {
+            int x = 0, y = r;
+            int d = 3 - 2 * r;
+            DRW(xc, yc, x, y,color);
+            while (y >= x)
+            {
+
+                x++;
+
+
+                if (d > 0)
+                {
+                    y--;
+                    d = d + 4 * (x - y) + 10;
+                }
+                else
+                    d = d + 4 * x + 6;
+                DRW(xc, yc, x, y,color);
+            }
+        }
+        void DRW(int xc, int yc, int x, int y,Color Kola)
+        {
+            image.SetPixel((uint)(xc + x),(uint) (yc + y), selColor);
+            image.SetPixel((uint)(xc - x), (uint)(yc + y), selColor);
+            image.SetPixel((uint)(xc + x), (uint)(yc - y), selColor);
+            image.SetPixel((uint)(xc - x), (uint)(yc - y), selColor);
+            image.SetPixel((uint)(xc + y), (uint)(yc + x), selColor);
+            image.SetPixel((uint)(xc - y), (uint)(yc + x), selColor);
+            image.SetPixel((uint)(xc + y), (uint)(yc - x), selColor);
+            image.SetPixel((uint)(xc - y), (uint)(yc - x), selColor);
         }
         private void sLine(object sender, EventArgs e)
         {
