@@ -32,6 +32,8 @@ namespace FrieVec
         RenderWindow window;
         List<String> cmds;
         String[] commands = new String[1];
+        Sprite sprite2;
+        Sprite sprite;
         public Form1()
         {
 
@@ -77,19 +79,19 @@ namespace FrieVec
 
             DrawingSurface rendersurface = new DrawingSurface();
             rendersurface.Size = new System.Drawing.Size((int)W, (int)H);
-
             Controls.Add(rendersurface);
             Panel.BackColor = System.Drawing.Color.FromArgb(30, 30, 30);
             image = new Image((uint)W, (uint)H, Color.Black);
             Texture tex = new Texture((uint)W, (uint)H);
-            Sprite sprite = new Sprite();
+            sprite = new Sprite();
 
             image2 = new Image(W, H, Color.Transparent);
             Texture tex2 = new Texture(W, H);
-            Sprite sprite2 = new Sprite();
+            sprite2 = new Sprite();
             window = new RenderWindow(rendersurface.Handle);
             window.MouseButtonPressed += Window_MouseButtonPressed;
             window.MouseWheelScrolled += Window_MouseWheelScrolled;
+
             for (int i = 1; i < cmds.Count; i++)
             {
                 String[] ccommand = cmds[i].Split(',');
@@ -102,21 +104,12 @@ namespace FrieVec
                         Fill(int.Parse(ccommand[1]), int.Parse(ccommand[2]), new Color(Convert.ToByte(int.Parse(ccommand[3])), Convert.ToByte(int.Parse(ccommand[4])), Convert.ToByte(int.Parse(ccommand[5]))));
                         break;
                     case "c":
-                        DrawCircle(uint.Parse(ccommand[1]), uint.Parse(ccommand[2]), uint.Parse(ccommand[3]), new Color(Convert.ToByte(int.Parse(ccommand[4])), Convert.ToByte(int.Parse(ccommand[5])), Convert.ToByte(int.Parse(ccommand[6]))));
+                        DrawCircle(int.Parse(ccommand[1]), int.Parse(ccommand[2]), uint.Parse(ccommand[3]), new Color(Convert.ToByte(int.Parse(ccommand[4])), Convert.ToByte(int.Parse(ccommand[5])), Convert.ToByte(int.Parse(ccommand[6]))));
                         break;
                 }
-                window.DispatchEvents(); // handle SFML events - NOTE this is still required when SFML is hosted in another window
-                tex.Update(image);
-                tex2.Update(image2);
-                sprite.Texture = tex;
-                sprite2.Texture = tex2;
-                window.Clear(); // clear our SFML RenderWindow
-                window.Draw(sprite);
-                window.Draw(sprite2);
-                window.Display();
             }
-
-
+            DrawText(20, 20, "Hey", 20, Color.Black);
+            Click += Form1_Click;
             while (Visible)
             {
                 Panel.Size = new System.Drawing.Size(30, Width);
@@ -127,7 +120,7 @@ namespace FrieVec
                     if (selected == "line")
                         DrawLine(startpos.X, startpos.Y, SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor, "i2");
                     if (selected == "circle")
-                        DrawCircle((uint)SFML.Window.Mouse.GetPosition(window).X,(uint) SFML.Window.Mouse.GetPosition(window).Y,(uint) radius, selColor, "i2");
+                        DrawCircle(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, (uint)radius, selColor, "i2");
                 }
                 Application.DoEvents();
                 window.DispatchEvents(); // handle SFML events - NOTE this is still required when SFML is hosted in another window
@@ -142,11 +135,26 @@ namespace FrieVec
             }
         }
 
-        private void Window_MouseWheelScrolled(object sender, SFML.Window.MouseWheelScrollEventArgs e)
+        private void Form1_Click(object sender, EventArgs e)
         {
-            radius += (int)((e.Delta * radius) / 10);
+            if (drawing && selected == "circle")
+            {
+                DrawCircle(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, (uint)radius, selColor);
+                cmds.Add("c," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + radius + "," + selColor.R + "," + selColor.G + "," + selColor.B);
+            }
         }
 
+        private void Window_MouseWheelScrolled(object sender, SFML.Window.MouseWheelScrollEventArgs e)
+        {
+            if (radius < 11)
+            {
+                radius += (int)e.Delta;
+                if (radius == 0)
+                    radius = 1;
+            }
+            else
+                radius += (int)((e.Delta * radius) / 10);
+        }
         [STAThread]
         static void Main()
         {
@@ -252,105 +260,87 @@ namespace FrieVec
                 if (e2 < dy) { err += dx; y1 += sy; }
             }
         }
-        void DrawCircle(uint x_centre, uint y_centre, uint r,Color color,String iage = "i1")
+        void DrawText(int x, int y, String text,int size,Color color)
         {
+            Text txt = new Text();
+            txt.DisplayedString = text;
+            txt.Position = new Vector2f(x,y);
+            txt.Scale = new Vector2f(size, size);
+            txt.Font = new SFML.Graphics.Font(SolutionLoc+"/Assets/arial.ttf");
+            txt.FillColor = color;
+
+            
+        }
+        void DrawCircle(int x_centro,int y_centro, uint r, Color color, String iage = "i1")
+        {
+            uint x_centre = (uint)x_centro;
+            uint y_centre = (uint)y_centro;
+            IntRect Racks = new IntRect(0, 0, (int)W, (int)H);
             //if you're not me, please don't look at this code 
-            uint x = r, y = 0;
-            if(iage == "i1")
-            {
-                image.SetPixel(x + x_centre, y + y_centre,color);
-
-                if (r > 0)
-                {
-                    image.SetPixel(x + x_centre, (uint)-y + y_centre,color);
-                    image.SetPixel(y + x_centre, x + y_centre, color);
-                    image.SetPixel((uint)-y + x_centre, x + y_centre, color);
-                }
-
-                int P = 1 - (int)r;
-                while (x > y)
-                {
-                    y++;
-
-
-                    if (P <= 0)
-                        P =(int)(P + 2 * y + 1);
-
-
-                    else
-                    {
-                        x--;
-                        P = (int)(P + 2 * y - 2 * x + 1);
-                    }
-
-
-                    if (x < y)
-                        break;
-
-                    image.SetPixel(x + x_centre, y + y_centre,color);
-                    image.SetPixel((uint)-x + x_centre, y + y_centre, color);
-                    image.SetPixel(x + x_centre, (uint)-y + y_centre, color);
-                    image.SetPixel((uint)-x + x_centre, (uint)-y + y_centre, color);
-
-                    if (x != y)
-                    {
-                        image.SetPixel(y + x_centre, x + y_centre, color);
-                        image.SetPixel((uint)-y + x_centre, x + y_centre, color);
-                        image.SetPixel(y + x_centre, (uint)-x + y_centre, color);
-                        image.SetPixel((uint)-y + x_centre, (uint)-x + y_centre, color);
-                    }
-                }
-                image.SetPixel(x_centre,(uint)(y_centre - radius), color);
-                image.SetPixel(x_centre - (uint)radius,y_centre, color);
-            }
+            ref Image img = ref image;
             if (iage == "i2")
+                img = ref image2;
+
+            uint x = r, y = 0;
+            if (Racks.Contains((int)(x + x_centre), (int)(y + y_centre)))
+                img.SetPixel(x + x_centre, y + y_centre, color);
+
+            if (r > 0)
             {
-                image2.SetPixel(x + x_centre, y + y_centre, color);
-
-                if (r > 0)
-                {
-                    image2.SetPixel(x + x_centre, (uint)-y + y_centre, color);
-                    image2.SetPixel(y + x_centre, x + y_centre, color);
-                    image2.SetPixel((uint)-y + x_centre, x + y_centre, color);
-                }
-
-                int P = 1 - (int)r;
-                while (x > y)
-                {
-                    y++;
-
-
-                    if (P <= 0)
-                        P = (int)(P + 2 * y + 1);
-
-
-                    else
-                    {
-                        x--;
-                        P = (int)(P + 2 * y - 2 * x + 1);
-                    }
-
-
-                    if (x < y)
-                        break;
-
-                    image2.SetPixel(x + x_centre, y + y_centre, color);
-                    image2.SetPixel((uint)-x + x_centre, y + y_centre, color);
-                    image2.SetPixel(x + x_centre, (uint)-y + y_centre, color);
-                    image2.SetPixel((uint)-x + x_centre, (uint)-y + y_centre, color);
-
-                    if (x != y)
-                    {
-                        image2.SetPixel(y + x_centre, x + y_centre, color);
-                        image2.SetPixel((uint)-y + x_centre, x + y_centre, color);
-                        image2.SetPixel(y + x_centre, (uint)-x + y_centre, color);
-                        image2.SetPixel((uint)-y + x_centre, (uint)-x + y_centre, color);
-                    }
-                }
-                image2.SetPixel(x_centre, (uint)(y_centre - radius), color);
-                image2.SetPixel(x_centre - (uint)radius, y_centre, color);
-
+                if (Racks.Contains((int)(x + x_centre), (int)(-y + y_centre)))
+                    img.SetPixel(x + x_centre, (uint)-y + y_centre, color);
+                if (Racks.Contains((int)(y + x_centre), (int)(x + y_centre)))
+                    img.SetPixel(y + x_centre, x + y_centre, color);
+                if (Racks.Contains((int)(-y + x_centre), (int)(x + y_centre)))
+                    img.SetPixel((uint)-y + x_centre, x + y_centre, color);
             }
+
+            int P = 1 - (int)r;
+            while (x > y)
+            {
+                y++;
+
+
+                if (P <= 0)
+                    P = (int)(P + 2 * y + 1);
+
+
+                else
+                {
+                    x--;
+                    P = (int)(P + 2 * y - 2 * x + 1);
+                }
+
+
+                if (x < y)
+                    break;
+                if (Racks.Contains((int)(x + x_centre), (int)(y + y_centre)))
+                    img.SetPixel(x + x_centre, y + y_centre, color);
+                if (Racks.Contains((int)(-x + x_centre), (int)(y + y_centre)))
+                    img.SetPixel((uint)-x + x_centre, y + y_centre, color);
+                if (Racks.Contains((int)(x + x_centre), (int)(-y + y_centre)))
+                    img.SetPixel(x + x_centre, (uint)-y + y_centre, color);
+                if (Racks.Contains((int)(-x + x_centre), (int)(-y + y_centre)))
+                    img.SetPixel((uint)-x + x_centre, (uint)-y + y_centre, color);
+
+                if (x != y)
+                {
+                    if (Racks.Contains((int)(y + x_centre), (int)(x + y_centre)))
+                        img.SetPixel(y + x_centre, x + y_centre, color);
+                    if (Racks.Contains((int)(-y + x_centre), (int)(x + y_centre)))
+                        img.SetPixel((uint)-y + x_centre, x + y_centre, color);
+                    if (Racks.Contains((int)(y + x_centre), (int)(-x + y_centre)))
+                        img.SetPixel(y + x_centre, (uint)-x + y_centre, color);
+                    if (Racks.Contains((int)(-y + x_centre), (int)(-x + y_centre)))
+                        img.SetPixel((uint)-y + x_centre, (uint)-x + y_centre, color);
+                }
+            }
+            if (Racks.Contains((int)(x_centre), (int)(y_centre - r)))
+                img.SetPixel(x_centre, (uint)(y_centre - r), color);
+            if (Racks.Contains((int)(x_centre - (uint)r), (int)(y_centre)))
+                img.SetPixel(x_centre - (uint)r, y_centre, color);
+
+
         }
         private void sLine(object sender, EventArgs e)
         {
@@ -396,8 +386,7 @@ namespace FrieVec
                 }
                 else if (drawing && selected == "circle")
                 {
-                    drawing = false;
-                    DrawCircle((uint)SFML.Window.Mouse.GetPosition(window).X, (uint)SFML.Window.Mouse.GetPosition(window).Y,(uint) radius, selColor);
+                    DrawCircle(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, (uint)radius, selColor);
                     cmds.Add("c," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + radius + "," + selColor.R + "," + selColor.G + "," + selColor.B);
                 }
             }
