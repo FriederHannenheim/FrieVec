@@ -53,7 +53,7 @@ namespace FrieVec
             Button FillButton = new Button();
             FillButton.Size = new System.Drawing.Size(30, 30);
             FillButton.Location = new System.Drawing.Point(0, 30);
-            FillButton.Image = System.Drawing.Image.FromFile(SolutionLoc +"Assets/floodfill.png");
+            FillButton.Image = System.Drawing.Image.FromFile(SolutionLoc + "Assets/floodfill.png");
             FillButton.BackColor = System.Drawing.Color.FromArgb(30, 30, 30);
             Panel.Controls.Add(FillButton);
             FillButton.Click += new EventHandler(sFill);
@@ -61,7 +61,7 @@ namespace FrieVec
             Button ColorSelectButton = new Button();
             ColorSelectButton.Size = new System.Drawing.Size(30, 30);
             ColorSelectButton.Location = new System.Drawing.Point(0, 150);
-            ColorSelectButton.Image = System.Drawing.Image.FromFile(SolutionLoc +"Assets/cp.png");
+            ColorSelectButton.Image = System.Drawing.Image.FromFile(SolutionLoc + "Assets/cp.png");
             ColorSelectButton.BackColor = System.Drawing.Color.FromArgb(30, 30, 30);
             Panel.Controls.Add(ColorSelectButton);
             ColorSelectButton.Click += new EventHandler(CP);
@@ -87,7 +87,9 @@ namespace FrieVec
             image2 = new Image(W, H, Color.Transparent);
             Texture tex2 = new Texture(W, H);
             Sprite sprite2 = new Sprite();
-
+            window = new RenderWindow(rendersurface.Handle);
+            window.MouseButtonPressed += Window_MouseButtonPressed;
+            window.MouseWheelScrolled += Window_MouseWheelScrolled;
             for (int i = 1; i < cmds.Count; i++)
             {
                 String[] ccommand = cmds[i].Split(',');
@@ -100,25 +102,32 @@ namespace FrieVec
                         Fill(int.Parse(ccommand[1]), int.Parse(ccommand[2]), new Color(Convert.ToByte(int.Parse(ccommand[3])), Convert.ToByte(int.Parse(ccommand[4])), Convert.ToByte(int.Parse(ccommand[5]))));
                         break;
                     case "c":
-                        DrawCircle(int.Parse(ccommand[1]), int.Parse(ccommand[2]),int.Parse(ccommand[3]),new Color(Convert.ToByte(int.Parse(ccommand[4])), Convert.ToByte(int.Parse(ccommand[5])), Convert.ToByte(int.Parse(ccommand[6]))));
+                        DrawCircle(uint.Parse(ccommand[1]), uint.Parse(ccommand[2]), uint.Parse(ccommand[3]), new Color(Convert.ToByte(int.Parse(ccommand[4])), Convert.ToByte(int.Parse(ccommand[5])), Convert.ToByte(int.Parse(ccommand[6]))));
                         break;
                 }
+                window.DispatchEvents(); // handle SFML events - NOTE this is still required when SFML is hosted in another window
+                tex.Update(image);
+                tex2.Update(image2);
+                sprite.Texture = tex;
+                sprite2.Texture = tex2;
+                window.Clear(); // clear our SFML RenderWindow
+                window.Draw(sprite);
+                window.Draw(sprite2);
+                window.Display();
             }
 
-            window = new RenderWindow(rendersurface.Handle);
-            window.MouseButtonPressed += Window_MouseButtonPressed;
-            window.MouseWheelScrolled += Window_MouseWheelScrolled;
+
             while (Visible)
             {
                 Panel.Size = new System.Drawing.Size(30, Width);
-                rendersurface.Location = new System.Drawing.Point(30 + ((this.Size.Width-30)-(int)W)/2, ((this.Size.Height - 30) - (int)H) / 2);
+                rendersurface.Location = new System.Drawing.Point(30 + ((this.Size.Width - 30) - (int)W) / 2, ((this.Size.Height - 30) - (int)H) / 2);
                 image2 = new Image(W, H, Color.Transparent);
                 if (drawing)
                 {
-                    if(selected == "line")
+                    if (selected == "line")
                         DrawLine(startpos.X, startpos.Y, SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor, "i2");
                     if (selected == "circle")
-                        DrawCircle(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, radius, selColor,"i2");
+                        DrawCircle((uint)SFML.Window.Mouse.GetPosition(window).X,(uint) SFML.Window.Mouse.GetPosition(window).Y,(uint) radius, selColor, "i2");
                 }
                 Application.DoEvents();
                 window.DispatchEvents(); // handle SFML events - NOTE this is still required when SFML is hosted in another window
@@ -135,7 +144,7 @@ namespace FrieVec
 
         private void Window_MouseWheelScrolled(object sender, SFML.Window.MouseWheelScrollEventArgs e)
         {
-            radius += (int)((e.Delta*radius)/10);
+            radius += (int)((e.Delta * radius) / 10);
         }
 
         [STAThread]
@@ -150,7 +159,7 @@ namespace FrieVec
             Button button5 = new Button();
             button5.Size = new System.Drawing.Size(30, 30);
             button5.Location = new System.Drawing.Point(0, 0);
-            button5.Image = System.Drawing.Image.FromFile(SolutionLoc +"Assets/Folder.png");
+            button5.Image = System.Drawing.Image.FromFile(SolutionLoc + "Assets/Folder.png");
             button5.BackColor = System.Drawing.Color.FromArgb(30, 30, 30);
             p.Controls.Add(button5);
             button5.Click += new EventHandler(p.LoadFile);
@@ -158,7 +167,7 @@ namespace FrieVec
             Button button6 = new Button();
             button6.Size = new System.Drawing.Size(30, 30);
             button6.Location = new System.Drawing.Point(0, 30);
-            button6.BackgroundImage = System.Drawing.Image.FromFile(SolutionLoc+"Assets/new.png");
+            button6.BackgroundImage = System.Drawing.Image.FromFile(SolutionLoc + "Assets/new.png");
             button6.BackgroundImageLayout = ImageLayout.Zoom;
             button6.BackColor = System.Drawing.Color.FromArgb(30, 30, 30);
             p.Controls.Add(button6);
@@ -243,52 +252,104 @@ namespace FrieVec
                 if (e2 < dy) { err += dx; y1 += sy; }
             }
         }
-        void DrawCircle(int xc, int yc, int r, Color color, string iage = "i1")
+        void DrawCircle(uint x_centre, uint y_centre, uint r,Color color,String iage = "i1")
         {
-            if (xc < 0 || xc > W || yc < 0 || yc > H)
-                return;
-            int x = 0, y = r;
-            int d = 3 - 2 * r;
-            DRW(xc, yc, x, y,color,iage);
-            while (y >= x)
-            {
-
-                x++;
-
-
-                if (d > 0)
-                {
-                    y--;
-                    d = d + 4 * (x - y) + 10;
-                }
-                else
-                    d = d + 4 * x + 6;
-                DRW(xc, yc, x, y,color,iage);
-            }
-        }
-        void DRW(int xc, int yc, int x, int y,Color Kola, string iage)
-        {
+            //if you're not me, please don't look at this code 
+            uint x = r, y = 0;
             if(iage == "i1")
             {
-                image.SetPixel((uint)(xc + x),(uint) (yc + y), selColor);
-                image.SetPixel((uint)(xc - x), (uint)(yc + y), selColor);
-                image.SetPixel((uint)(xc + x), (uint)(yc - y), selColor);
-                image.SetPixel((uint)(xc - x), (uint)(yc - y), selColor);
-                image.SetPixel((uint)(xc + y), (uint)(yc + x), selColor);
-                image.SetPixel((uint)(xc - y), (uint)(yc + x), selColor);
-                image.SetPixel((uint)(xc + y), (uint)(yc - x), selColor);
-                image.SetPixel((uint)(xc - y), (uint)(yc - x), selColor);
+                image.SetPixel(x + x_centre, y + y_centre,color);
+
+                if (r > 0)
+                {
+                    image.SetPixel(x + x_centre, (uint)-y + y_centre,color);
+                    image.SetPixel(y + x_centre, x + y_centre, color);
+                    image.SetPixel((uint)-y + x_centre, x + y_centre, color);
+                }
+
+                int P = 1 - (int)r;
+                while (x > y)
+                {
+                    y++;
+
+
+                    if (P <= 0)
+                        P =(int)(P + 2 * y + 1);
+
+
+                    else
+                    {
+                        x--;
+                        P = (int)(P + 2 * y - 2 * x + 1);
+                    }
+
+
+                    if (x < y)
+                        break;
+
+                    image.SetPixel(x + x_centre, y + y_centre,color);
+                    image.SetPixel((uint)-x + x_centre, y + y_centre, color);
+                    image.SetPixel(x + x_centre, (uint)-y + y_centre, color);
+                    image.SetPixel((uint)-x + x_centre, (uint)-y + y_centre, color);
+
+                    if (x != y)
+                    {
+                        image.SetPixel(y + x_centre, x + y_centre, color);
+                        image.SetPixel((uint)-y + x_centre, x + y_centre, color);
+                        image.SetPixel(y + x_centre, (uint)-x + y_centre, color);
+                        image.SetPixel((uint)-y + x_centre, (uint)-x + y_centre, color);
+                    }
+                }
+                image.SetPixel(x_centre,(uint)(y_centre - radius), color);
+                image.SetPixel(x_centre - (uint)radius,y_centre, color);
             }
             if (iage == "i2")
             {
-                image2.SetPixel((uint)(xc + x), (uint)(yc + y), selColor);
-                image2.SetPixel((uint)(xc - x), (uint)(yc + y), selColor);
-                image2.SetPixel((uint)(xc + x), (uint)(yc - y), selColor);
-                image2.SetPixel((uint)(xc - x), (uint)(yc - y), selColor);
-                image2.SetPixel((uint)(xc + y), (uint)(yc + x), selColor);
-                image2.SetPixel((uint)(xc - y), (uint)(yc + x), selColor);
-                image2.SetPixel((uint)(xc + y), (uint)(yc - x), selColor);
-                image2.SetPixel((uint)(xc - y), (uint)(yc - x), selColor);
+                image2.SetPixel(x + x_centre, y + y_centre, color);
+
+                if (r > 0)
+                {
+                    image2.SetPixel(x + x_centre, (uint)-y + y_centre, color);
+                    image2.SetPixel(y + x_centre, x + y_centre, color);
+                    image2.SetPixel((uint)-y + x_centre, x + y_centre, color);
+                }
+
+                int P = 1 - (int)r;
+                while (x > y)
+                {
+                    y++;
+
+
+                    if (P <= 0)
+                        P = (int)(P + 2 * y + 1);
+
+
+                    else
+                    {
+                        x--;
+                        P = (int)(P + 2 * y - 2 * x + 1);
+                    }
+
+
+                    if (x < y)
+                        break;
+
+                    image2.SetPixel(x + x_centre, y + y_centre, color);
+                    image2.SetPixel((uint)-x + x_centre, y + y_centre, color);
+                    image2.SetPixel(x + x_centre, (uint)-y + y_centre, color);
+                    image2.SetPixel((uint)-x + x_centre, (uint)-y + y_centre, color);
+
+                    if (x != y)
+                    {
+                        image2.SetPixel(y + x_centre, x + y_centre, color);
+                        image2.SetPixel((uint)-y + x_centre, x + y_centre, color);
+                        image2.SetPixel(y + x_centre, (uint)-x + y_centre, color);
+                        image2.SetPixel((uint)-y + x_centre, (uint)-x + y_centre, color);
+                    }
+                }
+                image2.SetPixel(x_centre, (uint)(y_centre - radius), color);
+                image2.SetPixel(x_centre - (uint)radius, y_centre, color);
+
             }
         }
         private void sLine(object sender, EventArgs e)
@@ -322,28 +383,29 @@ namespace FrieVec
                     Fill(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor);
                     cmds.Add("f," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + selColor.R + "," + selColor.G + "," + selColor.B);
                 }
-                else if (drawing&&selected== "line")
+                else if (drawing && selected == "line")
                 {
                     drawing = false;
                     DrawLine(startpos.X, startpos.Y, SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor);
                     cmds.Add("l," + startpos.X + "," + startpos.Y + "," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + selColor.R + "," + selColor.G + "," + selColor.B);
                 }
-                else if(selected == "line")
+                else if (selected == "line")
                 {
                     startpos = SFML.Window.Mouse.GetPosition(window);
                     drawing = true;
-                }else if(drawing && selected == "circle")
+                }
+                else if (drawing && selected == "circle")
                 {
                     drawing = false;
-                    DrawCircle(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, radius, selColor);
-                    cmds.Add("c," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + ","+radius+"," + selColor.R + "," + selColor.G + "," + selColor.B);
+                    DrawCircle((uint)SFML.Window.Mouse.GetPosition(window).X, (uint)SFML.Window.Mouse.GetPosition(window).Y,(uint) radius, selColor);
+                    cmds.Add("c," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + radius + "," + selColor.R + "," + selColor.G + "," + selColor.B);
                 }
             }
             if (e.Button == SFML.Window.Mouse.Button.Right)
             {
                 if (drawing)
                 {
-                    if(selected == "line")
+                    if (selected == "line")
                     {
                         DrawLine(startpos.X, startpos.Y, SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor);
 
