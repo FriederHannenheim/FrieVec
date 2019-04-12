@@ -2,6 +2,7 @@
 using SFML.Graphics;
 using SFML.System;
 using System;
+using System.Globalization;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -23,6 +24,8 @@ namespace FrieVec
         String Filename = "";
         bool drawing;
         int radius = 30;
+        String DrawingStr = "";
+        Text curtxt;
         String selected;
         Vector2i startpos;
         Image image;
@@ -34,6 +37,7 @@ namespace FrieVec
         String[] commands = new String[1];
         Sprite sprite2;
         Sprite sprite;
+        List<Drawable> Lüscht = new List<Drawable>();
         public Form1()
         {
 
@@ -77,6 +81,15 @@ namespace FrieVec
             Panel.Controls.Add(Circlebutton);
             Circlebutton.Click += new EventHandler(sCircle);
 
+            Button TextButton = new Button();
+            TextButton.Size = new System.Drawing.Size(30, 30);
+            TextButton.Location = new System.Drawing.Point(0, 90);
+            TextButton.BackgroundImage = System.Drawing.Image.FromFile(SolutionLoc + "Assets/Input.png");
+            TextButton.BackgroundImageLayout = ImageLayout.Stretch;
+            TextButton.BackColor = System.Drawing.Color.FromArgb(30, 30, 30);
+            Panel.Controls.Add(TextButton);
+            TextButton.Click += TextButton_Click;
+
             DrawingSurface rendersurface = new DrawingSurface();
             rendersurface.Size = new System.Drawing.Size((int)W, (int)H);
             Controls.Add(rendersurface);
@@ -106,9 +119,13 @@ namespace FrieVec
                     case "c":
                         DrawCircle(int.Parse(ccommand[1]), int.Parse(ccommand[2]), uint.Parse(ccommand[3]), new Color(Convert.ToByte(int.Parse(ccommand[4])), Convert.ToByte(int.Parse(ccommand[5])), Convert.ToByte(int.Parse(ccommand[6]))));
                         break;
+                    case "t":
+                        Text t = null;
+                        DrawText(int.Parse(ccommand[1]), int.Parse(ccommand[2]), ccommand[3], float.Parse(ccommand[4], CultureInfo.InvariantCulture), new Color(Convert.ToByte(int.Parse(ccommand[5])), Convert.ToByte(int.Parse(ccommand[6])), Convert.ToByte(int.Parse(ccommand[7]))),ref t);
+                        break;
                 }
             }
-            DrawText(20, 20, "Hey", 20, Color.Black);
+
             Click += Form1_Click;
             while (Visible)
             {
@@ -121,6 +138,8 @@ namespace FrieVec
                         DrawLine(startpos.X, startpos.Y, SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor, "i2");
                     if (selected == "circle")
                         DrawCircle(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, (uint)radius, selColor, "i2");
+                    if (selected == "txt")
+                        DrawText(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, DrawingStr, radius*0.1f, selColor,ref curtxt);
                 }
                 Application.DoEvents();
                 window.DispatchEvents(); // handle SFML events - NOTE this is still required when SFML is hosted in another window
@@ -131,8 +150,21 @@ namespace FrieVec
                 window.Clear(); // clear our SFML RenderWindow
                 window.Draw(sprite);
                 window.Draw(sprite2);
+                foreach (Drawable item in Lüscht)
+                {
+                    window.Draw(item);
+                }
                 window.Display();                         // display what SFML has drawn to the screen
             }
+        }
+
+        private void TextButton_Click(object sender, EventArgs e)
+        {
+            DrawingStr = Interaction.InputBox("Text", "Text");
+            Text t = new Text();
+            DrawText(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, DrawingStr, radius, selColor,ref t);
+            drawing = true;
+            selected = "txt";
         }
 
         private void Form1_Click(object sender, EventArgs e)
@@ -260,16 +292,22 @@ namespace FrieVec
                 if (e2 < dy) { err += dx; y1 += sy; }
             }
         }
-        void DrawText(int x, int y, String text,int size,Color color)
+        void DrawText(int x, int y, String text,float size,Color color,ref Text curtxt)
         {
-            Text txt = new Text();
-            txt.DisplayedString = text;
-            txt.Position = new Vector2f(x,y);
-            txt.Scale = new Vector2f(size, size);
-            txt.Font = new SFML.Graphics.Font(SolutionLoc+"/Assets/arial.ttf");
-            txt.FillColor = color;
+            if (curtxt == null)
+            {
+                curtxt = new Text();
+                Lüscht.Add(curtxt);
+                curtxt.DisplayedString = text;
+                curtxt.Font = new SFML.Graphics.Font(SolutionLoc+"/Assets/arial.ttf");
+                curtxt.FillColor = color;
+            }
 
-            
+
+            curtxt.Position = new Vector2f(x,y);
+            curtxt.Scale = new Vector2f(size, size);
+
+
         }
         void DrawCircle(int x_centro,int y_centro, uint r, Color color, String iage = "i1")
         {
@@ -388,6 +426,12 @@ namespace FrieVec
                 {
                     DrawCircle(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, (uint)radius, selColor);
                     cmds.Add("c," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + radius + "," + selColor.R + "," + selColor.G + "," + selColor.B);
+
+                }if(drawing && selected == "txt")
+                {
+                    cmds.Add("t," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + DrawingStr + "," + (radius * 0.1f).ToString(CultureInfo.InvariantCulture) + "," + selColor.R + "," + selColor.G + "," + selColor.B);
+                    drawing = false;
+                    curtxt = null;
                 }
             }
             if (e.Button == SFML.Window.Mouse.Button.Right)
@@ -400,6 +444,11 @@ namespace FrieVec
 
                         cmds.Add("l," + startpos.X + "," + startpos.Y + "," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + selColor.R + "," + selColor.G + "," + selColor.B);
                         startpos = SFML.Window.Mouse.GetPosition(window);
+                    }
+                    if (selected == "txt")
+                    {
+                        cmds.Add("t," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + DrawingStr + "," + (radius * 0.1f).ToString(CultureInfo.InvariantCulture) + "," + selColor.R + "," + selColor.G + "," + selColor.B);
+                        curtxt = null;
                     }
 
                 }
