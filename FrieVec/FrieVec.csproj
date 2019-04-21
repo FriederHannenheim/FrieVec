@@ -85,6 +85,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Crypt.cs" />
+    <Compile Include="Imageutillity.cs" />
     <Compile Include="Program.cs">
       <SubType>Form</SubType>
     </Compile>

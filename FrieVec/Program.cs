@@ -22,10 +22,11 @@ namespace FrieVec
 {
     public class Form1 : Form
     {
+        Imageutillity igs = new Imageutillity();
         public bool save = true;
         bool StrgPressed;
         float Rotation;
-        public static String SolutionLoc = "D:\\C#\\FrieVec\\";
+        public static String SolutionLoc = "C:\\Users\\Chef\\Desktop\\FrieVec\\";
         String Filename = "";
         bool drawing;
         int radius = 30;
@@ -119,25 +120,26 @@ namespace FrieVec
             window = new RenderWindow(rendersurface.Handle);
             window.MouseButtonPressed += Window_MouseButtonPressed;
             window.MouseWheelScrolled += Window_MouseWheelScrolled;
-
+            igs.W = W;
+            igs.H = H;
             for (int i = 1; i < cmds.Count; i++)
             {
                 String[] ccommand = cmds[i].Split(',');
                 switch (ccommand[0])
                 {
                     case "l":
-                        DrawLine(int.Parse(ccommand[1]), int.Parse(ccommand[2]), int.Parse(ccommand[3]), int.Parse(ccommand[4]), new Color(Convert.ToByte(int.Parse(ccommand[5])), Convert.ToByte(int.Parse(ccommand[6])), Convert.ToByte(int.Parse(ccommand[7]))));
+                        igs.DrawLine(int.Parse(ccommand[1]), int.Parse(ccommand[2]), int.Parse(ccommand[3]), int.Parse(ccommand[4]), new Color(Convert.ToByte(int.Parse(ccommand[5])), Convert.ToByte(int.Parse(ccommand[6])), Convert.ToByte(int.Parse(ccommand[7]))),ref image);
                         break;
                     case "f":
-                        Fill(int.Parse(ccommand[1]), int.Parse(ccommand[2]), new Color(Convert.ToByte(int.Parse(ccommand[3])), Convert.ToByte(int.Parse(ccommand[4])), Convert.ToByte(int.Parse(ccommand[5]))));
+                        igs.Fill(int.Parse(ccommand[1]), int.Parse(ccommand[2]), new Color(Convert.ToByte(int.Parse(ccommand[3])), Convert.ToByte(int.Parse(ccommand[4])), Convert.ToByte(int.Parse(ccommand[5]))),ref image);
                         break;
                     case "c":
-                        DrawCircle(int.Parse(ccommand[1]), int.Parse(ccommand[2]), uint.Parse(ccommand[3]), new Color(Convert.ToByte(int.Parse(ccommand[4])), Convert.ToByte(int.Parse(ccommand[5])), Convert.ToByte(int.Parse(ccommand[6]))));
+                        igs.DrawCircle(int.Parse(ccommand[1]), int.Parse(ccommand[2]), uint.Parse(ccommand[3]), new Color(Convert.ToByte(int.Parse(ccommand[4])), Convert.ToByte(int.Parse(ccommand[5])), Convert.ToByte(int.Parse(ccommand[6]))),ref image);
                         break;
                     case "t":
                         Text t = null;
                         Rotation = float.Parse(ccommand[8],CultureInfo.InvariantCulture);
-                        DrawText(int.Parse(ccommand[1]), int.Parse(ccommand[2]), ccommand[3], float.Parse(ccommand[4], CultureInfo.InvariantCulture), new Color(Convert.ToByte(int.Parse(ccommand[5])), Convert.ToByte(int.Parse(ccommand[6])), Convert.ToByte(int.Parse(ccommand[7]))),ref t);
+                        igs.DrawText(int.Parse(ccommand[1]), int.Parse(ccommand[2]), ccommand[3], float.Parse(ccommand[4], CultureInfo.InvariantCulture), new Color(Convert.ToByte(int.Parse(ccommand[5])), Convert.ToByte(int.Parse(ccommand[6])), Convert.ToByte(int.Parse(ccommand[7]))),ref t,ref Lüscht,Rotation);
                         break;
                 }
             }
@@ -153,11 +155,11 @@ namespace FrieVec
                 if (drawing)
                 {
                     if (selected == "line")
-                        DrawLine(startpos.X, startpos.Y, SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor, "i2");
+                        igs.DrawLine(startpos.X, startpos.Y, SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor, ref image2);
                     if (selected == "circle")
-                        DrawCircle(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, (uint)radius, selColor, "i2");
+                        igs.DrawCircle(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, (uint)radius, selColor, ref image2);
                     if (selected == "txt")
-                        DrawText(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, DrawingStr, radius*0.1f, selColor,ref curtxt);
+                        igs.DrawText(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, DrawingStr, radius*0.1f, selColor,ref curtxt,ref Lüscht,Rotation);
                 }
                 Application.DoEvents();
                 window.DispatchEvents(); // handle SFML events - NOTE this is still required when SFML is hosted in another window
@@ -201,7 +203,7 @@ namespace FrieVec
         {
             DrawingStr = Interaction.InputBox("Text", "Text");
             Text t = new Text();
-            DrawText(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, DrawingStr, radius, selColor,ref t);
+            igs.DrawText(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, DrawingStr, radius, selColor,ref t,ref Lüscht,Rotation);
             drawing = true;
             window.SetMouseCursorVisible(false);
             selected = "txt";
@@ -211,7 +213,7 @@ namespace FrieVec
         {
             if (drawing && selected == "circle")
             {
-                DrawCircle(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, (uint)radius, selColor);
+                igs.DrawCircle(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, (uint)radius, selColor,ref image);
                 cmds.Add("c," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + radius + "," + selColor.R + "," + selColor.G + "," + selColor.B);
             }
         }
@@ -291,136 +293,7 @@ namespace FrieVec
             System.IO.File.WriteAllText(p.Filename,StringCipher.Encrypt(string.Join("",p.cmds), "T322ewfWa"));
 
         }
-        private void Fill(int x, int y, Color color)
-        {
-            Stack<Vector2i> pixels = new Stack<Vector2i>();
-            Color target = image.GetPixel((uint)x, (uint)y);
-            if (color == target)
-                return;
-            pixels.Push(new Vector2i(x, y));
-            while (pixels.Count > 0)
-            {
-                Vector2i a = pixels.Pop();
-                if (a.X < W && a.X > -1 && a.Y < H && a.Y > -1)
-                {
-                    if (image.GetPixel((uint)a.X, (uint)a.Y) == target)
-                    {
-                        image.SetPixel((uint)a.X, (uint)a.Y, color);
-                        pixels.Push(new Vector2i(a.X - 1, a.Y));
-                        pixels.Push(new Vector2i(a.X + 1, a.Y));
-                        pixels.Push(new Vector2i(a.X, a.Y - 1));
-                        pixels.Push(new Vector2i(a.X, a.Y + 1));
-                    }
-                }
-            }
-        }
-        private void DrawLine(int x1, int y1, int x2, int y2, Color color, string iage = "i1")
-        {
-            if (x2 < 0 || x2 > W || y2 < 0 || y2 > H)
-                return;
-            int dx = Math.Abs(x2 - x1), sx = x1 < x2 ? 1 : -1;
-            int dy = Math.Abs(y2 - y1), sy = y1 < y2 ? 1 : -1;
-            int err = (dx > dy ? dx : -dy) / 2, e2;
-            for (; ; )
-            {
-                if (iage == "i1")
-                    image.SetPixel((uint)x1, (uint)y1, color);
-                if (iage == "i2")
-                    image2.SetPixel((uint)x1, (uint)y1, color);
-                if (x1 == x2 && y1 == y2) break;
-                e2 = err;
-                if (e2 > -dx) { err -= dy; x1 += sx; }
-                if (e2 < dy) { err += dx; y1 += sy; }
-            }
-        }
-        void DrawText(int x, int y, String text,float size,Color color,ref Text curtxt)
-        {
-            if (curtxt == null)
-            {
-                curtxt = new Text();
-                Lüscht.Add(curtxt);
-                curtxt.DisplayedString = text;
-                curtxt.Font = new SFML.Graphics.Font(SolutionLoc+"/Assets/arial.ttf");
-                curtxt.FillColor = color;
-            }
 
-            curtxt.Rotation = Rotation;
-            curtxt.Position = new Vector2f(x,y);
-            curtxt.Scale = new Vector2f(size, size);
-
-
-        }
-        void DrawCircle(int x_centro,int y_centro, uint r, Color color, String iage = "i1")
-        {
-            uint x_centre = (uint)x_centro;
-            uint y_centre = (uint)y_centro;
-            IntRect Racks = new IntRect(0, 0, (int)W, (int)H);
-            //if you're not me, please don't look at this code 
-            ref Image img = ref image;
-            if (iage == "i2")
-                img = ref image2;
-
-            uint x = r, y = 0;
-            if (Racks.Contains((int)(x + x_centre), (int)(y + y_centre)))
-                img.SetPixel(x + x_centre, y + y_centre, color);
-
-            if (r > 0)
-            {
-                if (Racks.Contains((int)(x + x_centre), (int)(-y + y_centre)))
-                    img.SetPixel(x + x_centre, (uint)-y + y_centre, color);
-                if (Racks.Contains((int)(y + x_centre), (int)(x + y_centre)))
-                    img.SetPixel(y + x_centre, x + y_centre, color);
-                if (Racks.Contains((int)(-y + x_centre), (int)(x + y_centre)))
-                    img.SetPixel((uint)-y + x_centre, x + y_centre, color);
-            }
-
-            int P = 1 - (int)r;
-            while (x > y)
-            {
-                y++;
-
-
-                if (P <= 0)
-                    P = (int)(P + 2 * y + 1);
-
-
-                else
-                {
-                    x--;
-                    P = (int)(P + 2 * y - 2 * x + 1);
-                }
-
-
-                if (x < y)
-                    break;
-                if (Racks.Contains((int)(x + x_centre), (int)(y + y_centre)))
-                    img.SetPixel(x + x_centre, y + y_centre, color);
-                if (Racks.Contains((int)(-x + x_centre), (int)(y + y_centre)))
-                    img.SetPixel((uint)-x + x_centre, y + y_centre, color);
-                if (Racks.Contains((int)(x + x_centre), (int)(-y + y_centre)))
-                    img.SetPixel(x + x_centre, (uint)-y + y_centre, color);
-                if (Racks.Contains((int)(-x + x_centre), (int)(-y + y_centre)))
-                    img.SetPixel((uint)-x + x_centre, (uint)-y + y_centre, color);
-
-                if (x != y)
-                {
-                    if (Racks.Contains((int)(y + x_centre), (int)(x + y_centre)))
-                        img.SetPixel(y + x_centre, x + y_centre, color);
-                    if (Racks.Contains((int)(-y + x_centre), (int)(x + y_centre)))
-                        img.SetPixel((uint)-y + x_centre, x + y_centre, color);
-                    if (Racks.Contains((int)(y + x_centre), (int)(-x + y_centre)))
-                        img.SetPixel(y + x_centre, (uint)-x + y_centre, color);
-                    if (Racks.Contains((int)(-y + x_centre), (int)(-x + y_centre)))
-                        img.SetPixel((uint)-y + x_centre, (uint)-x + y_centre, color);
-                }
-            }
-            if (Racks.Contains((int)(x_centre), (int)(y_centre - r)))
-                img.SetPixel(x_centre, (uint)(y_centre - r), color);
-            if (Racks.Contains((int)(x_centre - (uint)r), (int)(y_centre)))
-                img.SetPixel(x_centre - (uint)r, y_centre, color);
-
-
-        }
         private void sLine(object sender, EventArgs e)
         {
             selected = "line";
@@ -449,13 +322,13 @@ namespace FrieVec
             {
                 if (selected == "fill")
                 {
-                    Fill(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor);
+                    igs.Fill(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor,ref image);
                     cmds.Add("f," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + selColor.R + "," + selColor.G + "," + selColor.B);
                 }
                 else if (drawing && selected == "line")
                 {
                     drawing = false;
-                    DrawLine(startpos.X, startpos.Y, SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor);
+                    igs.DrawLine(startpos.X, startpos.Y, SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor,ref image);
                     cmds.Add("l," + startpos.X + "," + startpos.Y + "," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + selColor.R + "," + selColor.G + "," + selColor.B);
                 }
                 else if (selected == "line")
@@ -465,7 +338,7 @@ namespace FrieVec
                 }
                 else if (drawing && selected == "circle")
                 {
-                    DrawCircle(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, (uint)radius, selColor);
+                    igs.DrawCircle(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, (uint)radius, selColor,ref image);
                     cmds.Add("c," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + radius + "," + selColor.R + "," + selColor.G + "," + selColor.B);
 
                 }if(drawing && selected == "txt")
@@ -482,7 +355,7 @@ namespace FrieVec
                 {
                     if (selected == "line")
                     {
-                        DrawLine(startpos.X, startpos.Y, SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor);
+                        igs.DrawLine(startpos.X, startpos.Y, SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor,ref image);
 
                         cmds.Add("l," + startpos.X + "," + startpos.Y + "," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + selColor.R + "," + selColor.G + "," + selColor.B);
                         startpos = SFML.Window.Mouse.GetPosition(window);
@@ -515,7 +388,7 @@ namespace FrieVec
             t.Join();
             Filename = openFileDialog.FileName;
             t.Interrupt();
-            if (Filename == null)
+            if (Filename == "")
                 return;
             using (StreamReader fileStream = new StreamReader(Filename))//Read from file
             {
@@ -561,112 +434,9 @@ namespace FrieVec
     }
     public class DrawingSurface : System.Windows.Forms.Control
     {
-        protected override void OnPaint(System.Windows.Forms.PaintEventArgs e)
-        {
-            // don't call base.OnPaint(e) to prevent forground painting
-            // base.OnPaint(e);
-        }
-        protected override void OnPaintBackground(System.Windows.Forms.PaintEventArgs pevent)
-        {
-            // don't call base.OnPaintBackground(e) to prevent background painting
-            //base.OnPaintBackground(pevent);
-        }
+
     }
-    public static class StringCipher
-    {
-        // This constant is used to determine the keysize of the encryption algorithm in bits.
-        // We divide this by 8 within the code below to get the equivalent number of bytes.
-        private const int Keysize = 256;
 
-        // This constant determines the number of iterations for the password bytes generation function.
-        private const int DerivationIterations = 1000;
-
-        public static string Encrypt(string plainText, string passPhrase)
-        {
-            // Salt and IV is randomly generated each time, but is preprended to encrypted cipher text
-            // so that the same Salt and IV values can be used when decrypting.  
-            var saltStringBytes = Generate256BitsOfRandomEntropy();
-            var ivStringBytes = Generate256BitsOfRandomEntropy();
-            var plainTextBytes = Encoding.UTF8.GetBytes(plainText);
-            using (var password = new Rfc2898DeriveBytes(passPhrase, saltStringBytes, DerivationIterations))
-            {
-                var keyBytes = password.GetBytes(Keysize / 8);
-                using (var symmetricKey = new RijndaelManaged())
-                {
-                    symmetricKey.BlockSize = 256;
-                    symmetricKey.Mode = CipherMode.CBC;
-                    symmetricKey.Padding = PaddingMode.PKCS7;
-                    using (var encryptor = symmetricKey.CreateEncryptor(keyBytes, ivStringBytes))
-                    {
-                        using (var memoryStream = new MemoryStream())
-                        {
-                            using (var cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
-                            {
-                                cryptoStream.Write(plainTextBytes, 0, plainTextBytes.Length);
-                                cryptoStream.FlushFinalBlock();
-                                // Create the final bytes as a concatenation of the random salt bytes, the random iv bytes and the cipher bytes.
-                                var cipherTextBytes = saltStringBytes;
-                                cipherTextBytes = cipherTextBytes.Concat(ivStringBytes).ToArray();
-                                cipherTextBytes = cipherTextBytes.Concat(memoryStream.ToArray()).ToArray();
-                                memoryStream.Close();
-                                cryptoStream.Close();
-                                return Convert.ToBase64String(cipherTextBytes);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        public static string Decrypt(string cipherText, string passPhrase)
-        {
-            // Get the complete stream of bytes that represent:
-            // [32 bytes of Salt] + [32 bytes of IV] + [n bytes of CipherText]
-            var cipherTextBytesWithSaltAndIv = Convert.FromBase64String(cipherText);
-            // Get the saltbytes by extracting the first 32 bytes from the supplied cipherText bytes.
-            var saltStringBytes = cipherTextBytesWithSaltAndIv.Take(Keysize / 8).ToArray();
-            // Get the IV bytes by extracting the next 32 bytes from the supplied cipherText bytes.
-            var ivStringBytes = cipherTextBytesWithSaltAndIv.Skip(Keysize / 8).Take(Keysize / 8).ToArray();
-            // Get the actual cipher text bytes by removing the first 64 bytes from the cipherText string.
-            var cipherTextBytes = cipherTextBytesWithSaltAndIv.Skip((Keysize / 8) * 2).Take(cipherTextBytesWithSaltAndIv.Length - ((Keysize / 8) * 2)).ToArray();
-
-            using (var password = new Rfc2898DeriveBytes(passPhrase, saltStringBytes, DerivationIterations))
-            {
-                var keyBytes = password.GetBytes(Keysize / 8);
-                using (var symmetricKey = new RijndaelManaged())
-                {
-                    symmetricKey.BlockSize = 256;
-                    symmetricKey.Mode = CipherMode.CBC;
-                    symmetricKey.Padding = PaddingMode.PKCS7;
-                    using (var decryptor = symmetricKey.CreateDecryptor(keyBytes, ivStringBytes))
-                    {
-                        using (var memoryStream = new MemoryStream(cipherTextBytes))
-                        {
-                            using (var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
-                            {
-                                var plainTextBytes = new byte[cipherTextBytes.Length];
-                                var decryptedByteCount = cryptoStream.Read(plainTextBytes, 0, plainTextBytes.Length);
-                                memoryStream.Close();
-                                cryptoStream.Close();
-                                return Encoding.UTF8.GetString(plainTextBytes, 0, decryptedByteCount);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        private static byte[] Generate256BitsOfRandomEntropy()
-        {
-            var randomBytes = new byte[32]; // 32 Bytes will give us 256 bits.
-            using (var rngCsp = new RNGCryptoServiceProvider())
-            {
-                // Fill the array with cryptographically secure random bytes.
-                rngCsp.GetBytes(randomBytes);
-            }
-            return randomBytes;
-        }
-    }
 }
 
 
