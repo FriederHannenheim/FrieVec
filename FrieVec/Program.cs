@@ -54,11 +54,7 @@ namespace FrieVec
 
             Controls.Add(Panel);
 
-            Button LineButton = new Button();
-            LineButton.Size = new System.Drawing.Size(30, 30);
-            LineButton.Location = new System.Drawing.Point(0, 0);
-            LineButton.Image = System.Drawing.Image.FromFile(SolutionLoc + "Assets/Line.png");
-            LineButton.BackColor = System.Drawing.Color.FromArgb(30, 30, 30);
+            Button LineButton = CreateButton.NewButton(new System.Drawing.Size(30, 30), new System.Drawing.Point(0, 0), System.Drawing.Image.FromFile(SolutionLoc + "Assets/Line.png"), System.Drawing.Color.FromArgb(30, 30, 30));
             Panel.Controls.Add(LineButton);
             LineButton.Click += new EventHandler(sLine);
 
@@ -107,7 +103,6 @@ namespace FrieVec
 
             DrawingSurface rendersurface = new DrawingSurface();
             rendersurface.Size = new System.Drawing.Size((int)W, (int)H);
-            Size = new System.Drawing.Size((int)W+46, (int)H+40);
             Controls.Add(rendersurface);
             Panel.BackColor = System.Drawing.Color.FromArgb(30, 30, 30);
             image = new Image((uint)W, (uint)H, Color.Black);
@@ -121,6 +116,7 @@ namespace FrieVec
             window.MouseButtonPressed += Window_MouseButtonPressed;
             window.MouseWheelScrolled += Window_MouseWheelScrolled;
             igs.W = W;
+            Size = new System.Drawing.Size((int) W +30,(int)H +30);
             igs.H = H;
             for (int i = 1; i < cmds.Count; i++)
             {
@@ -144,7 +140,6 @@ namespace FrieVec
                 }
             }
             Rotation = 0;
-
             Click += Form1_Click;
             while (Visible)
             {
@@ -278,8 +273,7 @@ namespace FrieVec
             p.cmds = p.commands.ToList();
             p.W = W;
             p.H = H;
-            p.Size = new System.Drawing.Size((int)W + 30, (int)H);
-
+            p.Size = new System.Drawing.Size(Screen.PrimaryScreen.Bounds.X, Screen.PrimaryScreen.Bounds.Y);
 
             p.Run();
             if (p.save == false)
