@@ -16,13 +16,14 @@ using System.Windows.Forms;
 -Curves
 -Encryption random string
 -Pixels
+-Better main menu
 */
 
 namespace FrieVec
 {
     public class Form1 : Form
     {
-        float SizeFactor = 2;
+        float SizeFactor = 1.5f;
         public static String SolutionLoc = "C:\\Users\\Chef\\Desktop\\FrieVec\\";
 
 
@@ -215,27 +216,31 @@ namespace FrieVec
         static void Main()
         {
             Form1 p = new Form1();
-            uint W = 400;
-            uint H = 400;
+            uint W = 200;
+            uint H = 100;
+            float Dpc = (p.DeviceDpi / 2.54f) * p.SizeFactor;
 
-            #region veryBadcode
-            p.Size = new System.Drawing.Size((int)W + 30, (int)H);
+            p.ClientSize = new System.Drawing.Size((int)W, (int)H);
+
             Button button5 = new Button();
-            button5.Size = new System.Drawing.Size(30, 30);
-            button5.Location = new System.Drawing.Point(0, 0);
-            button5.Image = System.Drawing.Image.FromFile(SolutionLoc + "Assets/Folder.png");
+            button5.BackgroundImage = System.Drawing.Image.FromFile(SolutionLoc + "/Assets/Folder.png");
+            button5.Size = new System.Drawing.Size(100,100);
+            button5.BackgroundImageLayout = ImageLayout.Stretch;
             button5.BackColor = System.Drawing.Color.FromArgb(30, 30, 30);
+            button5.Anchor = AnchorStyles.None;
             p.Controls.Add(button5);
             button5.Click += new EventHandler(p.LoadFile);
 
             Button button6 = new Button();
-            button6.Size = new System.Drawing.Size(30, 30);
-            button6.Location = new System.Drawing.Point(0, 30);
-            button6.BackgroundImage = System.Drawing.Image.FromFile(SolutionLoc + "Assets/new.png");
-            button6.BackgroundImageLayout = ImageLayout.Zoom;
+            button6.BackgroundImage = System.Drawing.Image.FromFile(SolutionLoc + "/Assets/new.png");
             button6.BackColor = System.Drawing.Color.FromArgb(30, 30, 30);
+            button6.Left = 100;
+            button6.Size = new System.Drawing.Size(100, 100);
+            button6.BackgroundImageLayout = ImageLayout.Zoom;
+            button6.Anchor = AnchorStyles.None;
             p.Controls.Add(button6);
             button6.Click += new EventHandler(p.New);
+
             p.BackColor = System.Drawing.Color.FromArgb(50, 50, 50);
 
 
@@ -249,9 +254,10 @@ namespace FrieVec
             {
                 return;
             }
-            #endregion
+
             p.Controls.Remove(button5);
             p.Controls.Remove(button6);
+
 
             W = (uint)Int32.Parse(p.commands[0].Split(',')[0]);//read resolution
             H = (uint)Int32.Parse(p.commands[0].Split(',')[1]);
