@@ -69,10 +69,6 @@ namespace FrieVec
             Panel.Controls.Add(FillButton);
             FillButton.Click += new EventHandler(sFill);
 
-            Button ColorSelectButton = CreateButton.NewButton(new System.Drawing.Size((int)(1 * Dpc), (int)(1 * Dpc)), new System.Drawing.Point(0,(int)(4 * Dpc)), System.Drawing.Image.FromFile(SolutionLoc + "Assets/cp.png"), System.Drawing.Color.FromArgb(30, 30, 30));
-            Panel.Controls.Add(ColorSelectButton);
-            ColorSelectButton.Click += new EventHandler(CP);
-
             Button Circlebutton = CreateButton.NewButton(new System.Drawing.Size((int)(1 * Dpc), (int)(1 * Dpc)), new System.Drawing.Point(0,(int)(2 * Dpc)), System.Drawing.Image.FromFile(SolutionLoc + "Assets/Circle.png"), System.Drawing.Color.FromArgb(30, 30, 30),ImageLayout.Stretch);
             Panel.Controls.Add(Circlebutton);
             Circlebutton.Click += new EventHandler(sCircle);
@@ -80,6 +76,11 @@ namespace FrieVec
             Button TextButton = CreateButton.NewButton(new System.Drawing.Size((int)(1 * Dpc), (int)(1 * Dpc)), new System.Drawing.Point(0,(int)(3 * Dpc)), System.Drawing.Image.FromFile(SolutionLoc + "Assets/Input.png"), System.Drawing.Color.FromArgb(30, 30, 30));
             Panel.Controls.Add(TextButton);
             TextButton.Click += TextButton_Click;
+
+
+            Button ColorSelectButton = CreateButton.NewButton(new System.Drawing.Size((int)(1 * Dpc), (int)(1 * Dpc)), new System.Drawing.Point(0,(int)(4 * Dpc)), System.Drawing.Image.FromFile(SolutionLoc + "Assets/cp.png"), System.Drawing.Color.FromArgb(30, 30, 30));
+            Panel.Controls.Add(ColorSelectButton);
+            ColorSelectButton.Click += new EventHandler(CP);
 
             Button CloseB = CreateButton.NewButton(new System.Drawing.Size((int)(1 * Dpc), (int)(1 * Dpc)),System.Drawing.Point.Empty,"X",System.Drawing.Color.FromArgb(30,30,30));
             Panel.Controls.Add(CloseB);
@@ -125,6 +126,15 @@ namespace FrieVec
                         Text t = null;
                         Rotation = float.Parse(ccommand[8],CultureInfo.InvariantCulture);
                         Imageutils.DrawText(int.Parse(ccommand[1]), int.Parse(ccommand[2]), ccommand[3], float.Parse(ccommand[4], CultureInfo.InvariantCulture), new Color(Convert.ToByte(int.Parse(ccommand[5])), Convert.ToByte(int.Parse(ccommand[6])), Convert.ToByte(int.Parse(ccommand[7]))),ref t,ref Lüscht,Rotation);
+                        break;
+                    case "b":
+                        Imageutillity.DrawBezier(
+                            new Vector2f(int.Parse(ccommand[1]), int.Parse(ccommand[2])),
+                            new Vector2f(int.Parse(ccommand[3]), int.Parse(ccommand[4])),
+                            new Vector2f(int.Parse(ccommand[5]), int.Parse(ccommand[6])),
+                            new Vector2f(int.Parse(ccommand[7]), int.Parse(ccommand[8])),
+                            new Color(Convert.ToByte(int.Parse(ccommand[9])), Convert.ToByte(int.Parse(ccommand[10])), Convert.ToByte(int.Parse(ccommand[10]))),
+                            ref image);
                         break;
                 }
             }
@@ -271,13 +281,13 @@ namespace FrieVec
             p.Run();
             if (p.save == false)
                 return;
-            for (int i = 0; i < p.cmds.Count - 1; i++)
+            for (int i = 0; i < p.cmds.Count; i++)
             {
-                p.cmds[i] += ";";
+                p.cmds[i] += ";\n";
             }
 
 
-            System.IO.File.WriteAllText(p.Filename,StringCipher.Encrypt(string.Join("",p.cmds), "T322ewfWa"));
+            System.IO.File.WriteAllText(p.Filename,/*StringCipher.Encrypt(*/string.Join("",p.cmds)/*, "T322ewfWa")*/);
 
         }
 
@@ -388,11 +398,11 @@ namespace FrieVec
                 {
 
                 }
-                FullText = Regex.Replace(FullText, @"\t|\n|\r", "");
-                commands = FullText.Split(';');
-                if (commands.Length < 2)
-                {
 
+                commands = FullText.Split(';');
+                foreach (String s in commands)
+                {
+                    Regex.Replace(s, "\n", "");
                 }
             }
         }

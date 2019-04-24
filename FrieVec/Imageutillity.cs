@@ -11,7 +11,36 @@ namespace FrieVec
     class Imageutillity
     {
         public uint W, H;
-        public void Fill(int x, int y, Color color,ref Image image)
+        public static void DrawBezier(Vector2f st,Vector2f en,Vector2f p1,Vector2f p2,Color color,ref Image img)
+        {
+            int L = (int)((st - p1 + en - p2).X + (st - p1 + en - p2).X)*3;
+            foreach (Vector2f duuuuuu in CalcCubicBezier(st,en,p1,p2,L))
+            {
+                img.SetPixel((uint)duuuuuu.X, (uint)duuuuuu.Y, color);
+            }
+        }
+        static List<Vector2f> CalcCubicBezier(
+        Vector2f start,
+        Vector2f end,
+        Vector2f startControl,
+        Vector2f endControl,
+        int numSegments)
+        {
+            List<Vector2f> ret = new List<Vector2f>();
+            if (numSegments < 1) // Any points at all?
+                return ret;
+
+            ret.Add(start); // First point is fixed
+            float p = 1.0f / numSegments;
+            float q = p;
+            for (int i = 1; i < numSegments; i++, p += q) // Generate all between
+                ret.Add(p * p * p * (end + 3.0f * (startControl - endControl) - start) +
+                              3.0f * p * p * (start - 2.0f * startControl + endControl) +
+                              3.0f * p * (startControl - start) + start);
+            ret.Add(end); // Last point is fixed
+            return ret;
+        }
+        public void Fill(int x, int y, Color color, ref Image image)
         {
             Stack<Vector2i> pixels = new Stack<Vector2i>();
             Color target = image.GetPixel((uint)x, (uint)y);
@@ -34,7 +63,7 @@ namespace FrieVec
                 }
             }
         }
-        public void DrawLine(int x1, int y1, int x2, int y2, Color color,ref Image image)
+        public void DrawLine(int x1, int y1, int x2, int y2, Color color, ref Image image)
         {
             if (x2 < 0 || x2 > W || y2 < 0 || y2 > H)
                 return;
@@ -44,14 +73,14 @@ namespace FrieVec
             for (; ; )
             {
 
-                 image.SetPixel((uint)x1, (uint)y1, color);
+                image.SetPixel((uint)x1, (uint)y1, color);
                 if (x1 == x2 && y1 == y2) break;
                 e2 = err;
                 if (e2 > -dx) { err -= dy; x1 += sx; }
                 if (e2 < dy) { err += dx; y1 += sy; }
             }
         }
-        public void DrawText(int x, int y, String text, float size, Color color, ref Text curtxt, ref List<Drawable> Lüscht,float Rotation)
+        public void DrawText(int x, int y, String text, float size, Color color, ref Text curtxt, ref List<Drawable> Lüscht, float Rotation)
         {
             if (curtxt == null)
             {
@@ -68,7 +97,7 @@ namespace FrieVec
 
 
         }
-        public void DrawCircle(int x_centro, int y_centro, uint r, Color color,ref Image img)
+        public void DrawCircle(int x_centro, int y_centro, uint r, Color color, ref Image img)
         {
             uint x_centre = (uint)x_centro;
             uint y_centre = (uint)y_centro;
