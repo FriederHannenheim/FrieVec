@@ -11,15 +11,17 @@ namespace FrieVec
     class Imageutillity
     {
         public uint W, H;
-        public static void DrawBezier(Vector2f st,Vector2f en,Vector2f p1,Vector2f p2,Color color,ref Image img)
+        public void DrawBezier(Vector2f st,Vector2f en,Vector2f p1,Vector2f p2,Color color,ref Image img)
         {
+            FloatRect duuud = new FloatRect(0, 0,(int) W, (int)H);
             int L = (int)((st - p1 + en - p2).X + (st - p1 + en - p2).X)*3;
             foreach (Vector2f duuuuuu in CalcCubicBezier(st,en,p1,p2,L))
             {
+                if (duuud.Contains(duuuuuu.X,duuuuuu.Y))
                 img.SetPixel((uint)duuuuuu.X, (uint)duuuuuu.Y, color);
             }
         }
-        static List<Vector2f> CalcCubicBezier(
+        List<Vector2f> CalcCubicBezier(
         Vector2f start,
         Vector2f end,
         Vector2f startControl,

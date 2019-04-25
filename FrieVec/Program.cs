@@ -27,6 +27,8 @@ namespace FrieVec
         public static String SolutionLoc = "C:\\Users\\Chef\\Desktop\\FrieVec\\";
 
 
+        bool bezierFin;
+        Vector2f startb, endb, p1b, p2b;
         String Filename = "";
         bool drawing;
         int radius = 30;
@@ -55,34 +57,37 @@ namespace FrieVec
         public void Run()
         {
             System.Drawing.Graphics g = System.Drawing.Graphics.FromHwnd(IntPtr.Zero);
-            float Dpc = (this.DeviceDpi / 2.54f)*SizeFactor;
+            float Dpc = (this.DeviceDpi / 2.54f) * SizeFactor;
 
             Panel Panel = new Panel();
             Panel.BackColor = System.Drawing.Color.FromArgb(40, 40, 40);
             Controls.Add(Panel);
 
-            Button LineButton = CreateButton.NewButton(new System.Drawing.Size((int)(1 * Dpc), (int)(1*Dpc)), new System.Drawing.Point(0, 0), System.Drawing.Image.FromFile(SolutionLoc + "Assets/Line.png"), System.Drawing.Color.FromArgb(30, 30, 30));
+            Button LineButton = CreateButton.NewButton(new System.Drawing.Size((int)(1 * Dpc), (int)(1 * Dpc)), new System.Drawing.Point(0, 0), System.Drawing.Image.FromFile(SolutionLoc + "Assets/Line.png"), System.Drawing.Color.FromArgb(30, 30, 30));
             Panel.Controls.Add(LineButton);
-            LineButton.Click += (sender,e) => Select(sender,e,"line");
+            LineButton.Click += (sender, e) => Select(sender, e, "line");
 
-            Button FillButton = CreateButton.NewButton(new System.Drawing.Size((int)(1 * Dpc), (int)(1 * Dpc)),new System.Drawing.Point(0,(int)(1 * Dpc)), System.Drawing.Image.FromFile(SolutionLoc + "Assets/floodfill.png"), System.Drawing.Color.FromArgb(30, 30, 30),ImageLayout.Center);
+            Button FillButton = CreateButton.NewButton(new System.Drawing.Size((int)(1 * Dpc), (int)(1 * Dpc)), new System.Drawing.Point(0, (int)(1 * Dpc)), System.Drawing.Image.FromFile(SolutionLoc + "Assets/floodfill.png"), System.Drawing.Color.FromArgb(30, 30, 30), ImageLayout.Center);
             Panel.Controls.Add(FillButton);
             FillButton.Click += (sender, e) => Select(sender, e, "fill");
 
-            Button Circlebutton = CreateButton.NewButton(new System.Drawing.Size((int)(1 * Dpc), (int)(1 * Dpc)), new System.Drawing.Point(0,(int)(2 * Dpc)), System.Drawing.Image.FromFile(SolutionLoc + "Assets/Circle.png"), System.Drawing.Color.FromArgb(30, 30, 30),ImageLayout.Stretch);
+            Button Circlebutton = CreateButton.NewButton(new System.Drawing.Size((int)(1 * Dpc), (int)(1 * Dpc)), new System.Drawing.Point(0, (int)(2 * Dpc)), System.Drawing.Image.FromFile(SolutionLoc + "Assets/Circle.png"), System.Drawing.Color.FromArgb(30, 30, 30), ImageLayout.Stretch);
             Panel.Controls.Add(Circlebutton);
             Circlebutton.Click += (sender, e) => Select(sender, e, "circle");
 
-            Button TextButton = CreateButton.NewButton(new System.Drawing.Size((int)(1 * Dpc), (int)(1 * Dpc)), new System.Drawing.Point(0,(int)(3 * Dpc)), System.Drawing.Image.FromFile(SolutionLoc + "Assets/Input.png"), System.Drawing.Color.FromArgb(30, 30, 30));
+            Button TextButton = CreateButton.NewButton(new System.Drawing.Size((int)(1 * Dpc), (int)(1 * Dpc)), new System.Drawing.Point(0, (int)(3 * Dpc)), System.Drawing.Image.FromFile(SolutionLoc + "Assets/Input.png"), System.Drawing.Color.FromArgb(30, 30, 30));
             Panel.Controls.Add(TextButton);
             TextButton.Click += TextButton_Click;
 
+            Button BezierB = CreateButton.NewButton(new System.Drawing.Size((int)(Dpc), (int)Dpc), new System.Drawing.Point(0, (int)(4 * Dpc)), System.Drawing.Image.FromFile(SolutionLoc + "/Assets/Bezier.png"), System.Drawing.Color.FromArgb(30, 30, 30));
+            Panel.Controls.Add(BezierB);
+            BezierB.Click += (sender, e) => Select(sender, e, "bezier");
 
-            Button ColorSelectButton = CreateButton.NewButton(new System.Drawing.Size((int)(1 * Dpc), (int)(1 * Dpc)), new System.Drawing.Point(0,(int)(4 * Dpc)), System.Drawing.Image.FromFile(SolutionLoc + "Assets/cp.png"), System.Drawing.Color.FromArgb(30, 30, 30));
+            Button ColorSelectButton = CreateButton.NewButton(new System.Drawing.Size((int)(1 * Dpc), (int)(1 * Dpc)), new System.Drawing.Point(0, (int)(5 * Dpc)), System.Drawing.Image.FromFile(SolutionLoc + "Assets/cp.png"), System.Drawing.Color.FromArgb(30, 30, 30));
             Panel.Controls.Add(ColorSelectButton);
             ColorSelectButton.Click += new EventHandler(CP);
 
-            Button CloseB = CreateButton.NewButton(new System.Drawing.Size((int)(1 * Dpc), (int)(1 * Dpc)),System.Drawing.Point.Empty,"X",System.Drawing.Color.FromArgb(30,30,30));
+            Button CloseB = CreateButton.NewButton(new System.Drawing.Size((int)(1 * Dpc), (int)(1 * Dpc)), System.Drawing.Point.Empty, "X", System.Drawing.Color.FromArgb(30, 30, 30));
             Panel.Controls.Add(CloseB);
             CloseB.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             CloseB.ForeColor = System.Drawing.Color.Red;
@@ -106,29 +111,31 @@ namespace FrieVec
 
 
             Imageutils.W = W;
-            this.Size = this.SizeFromClientSize(new System.Drawing.Size((int)(W+Dpc),(int)H));
+            this.Size = this.SizeFromClientSize(new System.Drawing.Size((int)(W + Dpc), (int)H));
             Imageutils.H = H;
             for (int i = 1; i < cmds.Count; i++)
             {
+
                 String[] ccommand = cmds[i].Split(',');
+                Console.WriteLine(ccommand[0]);
                 switch (ccommand[0])
                 {
                     case "l":
-                        Imageutils.DrawLine(int.Parse(ccommand[1]), int.Parse(ccommand[2]), int.Parse(ccommand[3]), int.Parse(ccommand[4]), new Color(Convert.ToByte(int.Parse(ccommand[5])), Convert.ToByte(int.Parse(ccommand[6])), Convert.ToByte(int.Parse(ccommand[7]))),ref image);
+                        Imageutils.DrawLine(int.Parse(ccommand[1]), int.Parse(ccommand[2]), int.Parse(ccommand[3]), int.Parse(ccommand[4]), new Color(Convert.ToByte(int.Parse(ccommand[5])), Convert.ToByte(int.Parse(ccommand[6])), Convert.ToByte(int.Parse(ccommand[7]))), ref image);
                         break;
                     case "f":
-                        Imageutils.Fill(int.Parse(ccommand[1]), int.Parse(ccommand[2]), new Color(Convert.ToByte(int.Parse(ccommand[3])), Convert.ToByte(int.Parse(ccommand[4])), Convert.ToByte(int.Parse(ccommand[5]))),ref image);
+                        Imageutils.Fill(int.Parse(ccommand[1]), int.Parse(ccommand[2]), new Color(Convert.ToByte(int.Parse(ccommand[3])), Convert.ToByte(int.Parse(ccommand[4])), Convert.ToByte(int.Parse(ccommand[5]))), ref image);
                         break;
                     case "c":
-                        Imageutils.DrawCircle(int.Parse(ccommand[1]), int.Parse(ccommand[2]), uint.Parse(ccommand[3]), new Color(Convert.ToByte(int.Parse(ccommand[4])), Convert.ToByte(int.Parse(ccommand[5])), Convert.ToByte(int.Parse(ccommand[6]))),ref image);
+                        Imageutils.DrawCircle(int.Parse(ccommand[1]), int.Parse(ccommand[2]), uint.Parse(ccommand[3]), new Color(Convert.ToByte(int.Parse(ccommand[4])), Convert.ToByte(int.Parse(ccommand[5])), Convert.ToByte(int.Parse(ccommand[6]))), ref image);
                         break;
                     case "t":
                         Text t = null;
-                        Rotation = float.Parse(ccommand[8],CultureInfo.InvariantCulture);
-                        Imageutils.DrawText(int.Parse(ccommand[1]), int.Parse(ccommand[2]), ccommand[3], float.Parse(ccommand[4], CultureInfo.InvariantCulture), new Color(Convert.ToByte(int.Parse(ccommand[5])), Convert.ToByte(int.Parse(ccommand[6])), Convert.ToByte(int.Parse(ccommand[7]))),ref t,ref Lüscht,Rotation);
+                        Rotation = float.Parse(ccommand[8], CultureInfo.InvariantCulture);
+                        Imageutils.DrawText(int.Parse(ccommand[1]), int.Parse(ccommand[2]), ccommand[3], float.Parse(ccommand[4], CultureInfo.InvariantCulture), new Color(Convert.ToByte(int.Parse(ccommand[5])), Convert.ToByte(int.Parse(ccommand[6])), Convert.ToByte(int.Parse(ccommand[7]))), ref t, ref Lüscht, Rotation);
                         break;
                     case "b":
-                        Imageutillity.DrawBezier(
+                        Imageutils.DrawBezier(
                             new Vector2f(int.Parse(ccommand[1]), int.Parse(ccommand[2])),
                             new Vector2f(int.Parse(ccommand[3]), int.Parse(ccommand[4])),
                             new Vector2f(int.Parse(ccommand[5]), int.Parse(ccommand[6])),
@@ -138,14 +145,14 @@ namespace FrieVec
                         break;
                 }
             }
-            //Imageutillity.DrawBezier(new Vector2f(100, 100), new Vector2f(900, 900), new Vector2f(300, 150), new Vector2f(100, 50), Color.White, ref image);
+            Imageutils.DrawBezier(new Vector2f(100, 100), new Vector2f(900, 900), new Vector2f(300, 150), new Vector2f(100, 50), Color.White, ref image);
             Rotation = 0;
             Click += Form1_Click;
             while (Visible)
             {
-                CloseB.Location = new System.Drawing.Point(0, this.ClientSize.Height -(int) Dpc);
+                CloseB.Location = new System.Drawing.Point(0, this.ClientSize.Height - (int)Dpc);
                 Panel.Size = new System.Drawing.Size((int)Dpc, this.ClientSize.Height);
-                rendersurface.Location = new System.Drawing.Point((int)((int)(Dpc +(this.ClientSize.Width)- W)*0.5f), (int)(((this.ClientSize.Height) - H) * 0.5f));
+                rendersurface.Location = new System.Drawing.Point((int)((int)(Dpc + (this.ClientSize.Width) - W) * 0.5f), (int)(((this.ClientSize.Height) - H) * 0.5f));
                 image2 = new Image(W, H, Color.Transparent);
                 if (drawing)
                 {
@@ -154,7 +161,13 @@ namespace FrieVec
                     if (selected == "circle")
                         Imageutils.DrawCircle(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, (uint)radius, selColor, ref image2);
                     if (selected == "txt")
-                        Imageutils.DrawText(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, DrawingStr, radius*0.1f, selColor,ref curtxt,ref Lüscht,Rotation);
+                        Imageutils.DrawText(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, DrawingStr, radius * 0.1f, selColor, ref curtxt, ref Lüscht, Rotation);
+                    if (selected == "bezier" && !bezierFin)
+                    {
+                        Imageutils.DrawCircle(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, (uint)(Dpc * 0.5f), selColor, ref image2);
+                        Imageutils.DrawCircle((int)startb.X,(int)startb.Y, (uint)(Dpc * 0.5f), Color.White, ref image2);
+                        Imageutils.DrawLine((int)startb.X, (int)startb.Y, SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor, ref image2);
+                    }
                 }
                 Application.DoEvents();
                 window.DispatchEvents(); // handle SFML events - NOTE this is still required when SFML is hosted in another window
@@ -181,12 +194,12 @@ namespace FrieVec
         private void CloseB_Click(object sender, EventArgs e)
         {
             DialogResult dialog = MessageBox.Show("Save changes?", "Close", MessageBoxButtons.YesNoCancel);
-            if(dialog == DialogResult.Yes)
+            if (dialog == DialogResult.Yes)
             {
                 System.Diagnostics.Process.Start("FrieVec.exe");
                 Application.Exit();
             }
-            if(dialog == DialogResult.No)
+            if (dialog == DialogResult.No)
             {
                 System.Diagnostics.Process.Start("FrieVec.exe");
                 save = false;
@@ -198,7 +211,7 @@ namespace FrieVec
         {
             DrawingStr = Interaction.InputBox("Text", "Text");
             Text t = new Text();
-            Imageutils.DrawText(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, DrawingStr, radius, selColor,ref t,ref Lüscht,Rotation);
+            Imageutils.DrawText(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, DrawingStr, radius, selColor, ref t, ref Lüscht, Rotation);
             drawing = true;
             window.SetMouseCursorVisible(false);
             selected = "txt";
@@ -208,16 +221,17 @@ namespace FrieVec
         {
             if (drawing && selected == "circle")
             {
-                Imageutils.DrawCircle(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, (uint)radius, selColor,ref image);
+                Imageutils.DrawCircle(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, (uint)radius, selColor, ref image);
                 cmds.Add("c," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + radius + "," + selColor.R + "," + selColor.G + "," + selColor.B);
             }
         }
         private void Window_MouseWheelScrolled(object sender, SFML.Window.MouseWheelScrollEventArgs e)
         {
-            if(StrgPressed)
+            if (StrgPressed)
             {
-                Rotation += e.Delta*3;
-            }else
+                Rotation += e.Delta * 3;
+            }
+            else
             {
                 radius += (int)((e.Delta * radius) * 0.1f);
             }
@@ -235,7 +249,7 @@ namespace FrieVec
 
             Button button5 = new Button();
             button5.BackgroundImage = System.Drawing.Image.FromFile(SolutionLoc + "/Assets/Folder.png");
-            button5.Size = new System.Drawing.Size(100,100);
+            button5.Size = new System.Drawing.Size(100, 100);
             button5.BackgroundImageLayout = ImageLayout.Stretch;
             button5.BackColor = System.Drawing.Color.FromArgb(30, 30, 30);
             button5.Anchor = AnchorStyles.None;
@@ -288,14 +302,16 @@ namespace FrieVec
             }
 
 
-            System.IO.File.WriteAllText(p.Filename,/*StringCipher.Encrypt(*/string.Join("",p.cmds)/*, "T322ewfWa")*/);
+            System.IO.File.WriteAllText(p.Filename,/*StringCipher.Encrypt(*/string.Join("", p.cmds)/*, "T322ewfWa")*/);
 
         }
 
-        private void Select(object sender, EventArgs e,String sel)
+        private void Select(object sender, EventArgs e, String sel)
         {
             selected = sel;
             drawing = false;
+            if (sel == "circle")
+                drawing = true;
         }
         private void CP(object sender, EventArgs e)
         {
@@ -310,13 +326,13 @@ namespace FrieVec
             {
                 if (selected == "fill")
                 {
-                    Imageutils.Fill(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor,ref image);
+                    Imageutils.Fill(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor, ref image);
                     cmds.Add("f," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + selColor.R + "," + selColor.G + "," + selColor.B);
                 }
                 else if (drawing && selected == "line")
                 {
                     drawing = false;
-                    Imageutils.DrawLine(startpos.X, startpos.Y, SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor,ref image);
+                    Imageutils.DrawLine(startpos.X, startpos.Y, SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor, ref image);
                     cmds.Add("l," + startpos.X + "," + startpos.Y + "," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + selColor.R + "," + selColor.G + "," + selColor.B);
                 }
                 else if (selected == "line")
@@ -326,10 +342,11 @@ namespace FrieVec
                 }
                 else if (drawing && selected == "circle")
                 {
-                    Imageutils.DrawCircle(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, (uint)radius, selColor,ref image);
+                    Imageutils.DrawCircle(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, (uint)radius, selColor, ref image);
                     cmds.Add("c," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + radius + "," + selColor.R + "," + selColor.G + "," + selColor.B);
 
-                }if(drawing && selected == "txt")
+                }
+                if (drawing && selected == "txt")
                 {
                     cmds.Add("t," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + DrawingStr + "," + (radius * 0.1f).ToString(CultureInfo.InvariantCulture) + "," + selColor.R + "," + selColor.G + "," + selColor.B + "," + Rotation.ToString(CultureInfo.InvariantCulture));
                     drawing = false;
@@ -343,14 +360,14 @@ namespace FrieVec
                 {
                     if (selected == "line")
                     {
-                        Imageutils.DrawLine(startpos.X, startpos.Y, SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor,ref image);
+                        Imageutils.DrawLine(startpos.X, startpos.Y, SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor, ref image);
 
                         cmds.Add("l," + startpos.X + "," + startpos.Y + "," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + selColor.R + "," + selColor.G + "," + selColor.B);
                         startpos = SFML.Window.Mouse.GetPosition(window);
                     }
                     if (selected == "txt")
                     {
-                        cmds.Add("t," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + DrawingStr + "," + (radius * 0.1f).ToString(CultureInfo.InvariantCulture) + "," + selColor.R + "," + selColor.G + "," + selColor.B+","+Rotation.ToString(CultureInfo.InvariantCulture));
+                        cmds.Add("t," + SFML.Window.Mouse.GetPosition(window).X + "," + SFML.Window.Mouse.GetPosition(window).Y + "," + DrawingStr + "," + (radius * 0.1f).ToString(CultureInfo.InvariantCulture) + "," + selColor.R + "," + selColor.G + "," + selColor.B + "," + Rotation.ToString(CultureInfo.InvariantCulture));
                         curtxt = null;
                     }
 
@@ -383,7 +400,7 @@ namespace FrieVec
                 String FullText = fileStream.ReadToEnd();
                 try
                 {
-                    FullText = StringCipher.Decrypt(FullText,"T322ewfWa");
+                    FullText = StringCipher.Decrypt(FullText, "T322ewfWa");
                 }
                 catch
                 {
@@ -391,9 +408,10 @@ namespace FrieVec
                 }
 
                 commands = FullText.Split(';');
-                foreach (String s in commands)
+                for (int i = 0; i < commands.Count(); i++)
+
                 {
-                    Regex.Replace(s, "\n", "");
+                    commands[i] = Regex.Replace(commands[i], "\n", "");
                 }
             }
         }
