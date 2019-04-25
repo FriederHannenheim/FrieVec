@@ -164,9 +164,17 @@ namespace FrieVec
                         Imageutils.DrawText(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, DrawingStr, radius * 0.1f, selColor, ref curtxt, ref Lüscht, Rotation);
                     if (selected == "bezier" && !bezierFin)
                     {
-                        Imageutils.DrawCircle(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, (uint)(Dpc * 0.5f), selColor, ref image2);
+                        Imageutils.DrawCircle(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, (uint)(Dpc * 0.5f), Color.White, ref image2);
                         Imageutils.DrawCircle((int)startb.X,(int)startb.Y, (uint)(Dpc * 0.5f), Color.White, ref image2);
                         Imageutils.DrawLine((int)startb.X, (int)startb.Y, SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor, ref image2);
+                    }
+                    if (selected == "bezier" && bezierFin)
+                    {
+                        Imageutils.DrawCircle((int)endb.X,(int)endb.Y, (uint)(Dpc * 0.5f), Color.White, ref image2);
+                        Imageutils.DrawCircle((int)startb.X, (int)startb.Y, (uint)(Dpc * 0.5f), Color.White, ref image2);
+                        Imageutils.DrawCircle((int)p1b.X, (int)p1b.Y, (uint)(Dpc * 0.5f), Color.White, ref image2);
+                        Imageutils.DrawCircle((int)p2b.X, (int)p2b.Y, (uint)(Dpc * 0.5f), Color.White, ref image2);
+                        Imageutils.DrawBezier(startb,endb,p1b,p2b, selColor, ref image2);
                     }
                 }
                 Application.DoEvents();
@@ -353,6 +361,20 @@ namespace FrieVec
                     curtxt = null;
                     window.SetMouseCursorVisible(true);
                 }
+                if(selected == "bezier" && !drawing)
+                {
+                    drawing = true;
+                    bezierFin = false;
+                    startb = (Vector2f)SFML.Window.Mouse.GetPosition(window);
+                }
+                if (selected == "bezier" && !bezierFin && drawing)
+                {
+                    bezierFin = true;
+                    endb = (Vector2f)SFML.Window.Mouse.GetPosition(window);
+                    p1b = (endb + startb) * 0.25f;
+                    p2b = (endb + startb) * 0.75f;
+                }
+                
             }
             if (e.Button == SFML.Window.Mouse.Button.Right)
             {
