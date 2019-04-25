@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualBasic;
 using SFML.Graphics;
 using SFML.System;
+using SFML.Window;
 using System;
 using System.Security.Cryptography;
 using System.Text;
@@ -26,7 +27,8 @@ namespace FrieVec
         float SizeFactor = 1.5f;
         public static String SolutionLoc = "C:\\Users\\Chef\\Desktop\\FrieVec\\";
 
-
+        string LockedOn = "";
+        float Dpc;
         bool bezierFin;
         Vector2f startb, endb, p1b, p2b;
         String Filename = "";
@@ -57,7 +59,7 @@ namespace FrieVec
         public void Run()
         {
             System.Drawing.Graphics g = System.Drawing.Graphics.FromHwnd(IntPtr.Zero);
-            float Dpc = (this.DeviceDpi / 2.54f) * SizeFactor;
+            Dpc = (this.DeviceDpi / 2.54f) * SizeFactor;
 
             Panel Panel = new Panel();
             Panel.BackColor = System.Drawing.Color.FromArgb(40, 40, 40);
@@ -164,17 +166,25 @@ namespace FrieVec
                         Imageutils.DrawText(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, DrawingStr, radius * 0.1f, selColor, ref curtxt, ref Lüscht, Rotation);
                     if (selected == "bezier" && !bezierFin)
                     {
-                        Imageutils.DrawCircle(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, (uint)(Dpc * 0.5f), Color.White, ref image2);
-                        Imageutils.DrawCircle((int)startb.X,(int)startb.Y, (uint)(Dpc * 0.5f), Color.White, ref image2);
+                        Imageutils.DrawCircle(SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, (uint)(Dpc * 0.25f), Color.White, ref image2);
+                        Imageutils.DrawCircle((int)startb.X, (int)startb.Y, (uint)(Dpc * 0.25f), Color.White, ref image2);
                         Imageutils.DrawLine((int)startb.X, (int)startb.Y, SFML.Window.Mouse.GetPosition(window).X, SFML.Window.Mouse.GetPosition(window).Y, selColor, ref image2);
                     }
                     if (selected == "bezier" && bezierFin)
                     {
-                        Imageutils.DrawCircle((int)endb.X,(int)endb.Y, (uint)(Dpc * 0.5f), Color.White, ref image2);
-                        Imageutils.DrawCircle((int)startb.X, (int)startb.Y, (uint)(Dpc * 0.5f), Color.White, ref image2);
-                        Imageutils.DrawCircle((int)p1b.X, (int)p1b.Y, (uint)(Dpc * 0.5f), Color.White, ref image2);
-                        Imageutils.DrawCircle((int)p2b.X, (int)p2b.Y, (uint)(Dpc * 0.5f), Color.White, ref image2);
-                        Imageutils.DrawBezier(startb,endb,p1b,p2b, selColor, ref image2);
+                        Imageutils.DrawCircle((int)endb.X, (int)endb.Y, (uint)(Dpc * 0.25f), Color.White, ref image2);
+                        Imageutils.DrawCircle((int)startb.X, (int)startb.Y, (uint)(Dpc * 0.25f), Color.White, ref image2);
+                        Imageutils.DrawCircle((int)p1b.X, (int)p1b.Y, (uint)(Dpc * 0.25f), Color.White, ref image2);
+                        Imageutils.DrawCircle((int)p2b.X, (int)p2b.Y, (uint)(Dpc * 0.25f), Color.White, ref image2);
+                        Imageutils.DrawBezier(startb, endb, p1b, p2b, selColor, ref image2);
+                    }
+                    if (LockedOn == "p1r")
+                    {
+                        p1b = (Vector2f)Mouse.GetPosition(window);
+                    }
+                    if (LockedOn == "p2r")
+                    {
+                        p2b = (Vector2f)Mouse.GetPosition(window);
                     }
                 }
                 Application.DoEvents();
@@ -361,20 +371,42 @@ namespace FrieVec
                     curtxt = null;
                     window.SetMouseCursorVisible(true);
                 }
-                if(selected == "bezier" && !drawing)
+                if (selected == "bezier" && !drawing)
                 {
                     drawing = true;
                     bezierFin = false;
                     startb = (Vector2f)SFML.Window.Mouse.GetPosition(window);
                 }
-                if (selected == "bezier" && !bezierFin && drawing)
+                else if (selected == "bezier" && !bezierFin && drawing)
                 {
                     bezierFin = true;
                     endb = (Vector2f)SFML.Window.Mouse.GetPosition(window);
-                    p1b = (endb + startb) * 0.25f;
-                    p2b = (endb + startb) * 0.75f;
+                    p1b = new Vector2f((endb.X - startb.X) * 0.25f + startb.X, (endb.Y - startb.Y) * 0.25f + startb.Y);
+                    p2b = new Vector2f((endb.X - startb.X) * 0.75f + startb.X, (endb.Y - startb.Y) * 0.75f + startb.Y);
                 }
-                
+                else if (selected == "bezier" && bezierFin)
+                {
+                    if (CircleContains((Vector2i)p1b,(int)(Dpc * 0.25f),Mouse.GetPosition(window)))
+                    {
+                        if (LockedOn != "p1r")
+                            LockedOn = "p1r";
+                        else
+                            LockedOn = "";
+                        return;
+                    }
+                    if (CircleContains((Vector2i)p2b, (int)(Dpc * 0.25f), Mouse.GetPosition(window)))
+                    {
+                        if (LockedOn != "p2r")
+                            LockedOn = "p2r";
+                        else
+                            LockedOn = "";
+                        return;
+                    }
+                    drawing = false;
+                    bezierFin = false;
+                    Imageutils.DrawBezier(startb, endb, p1b, p2b, selColor, ref image);
+                }
+
             }
             if (e.Button == SFML.Window.Mouse.Button.Right)
             {
@@ -458,6 +490,19 @@ namespace FrieVec
                 commands[0] = Interaction.InputBox("Input resolution", "New File", "500,500");
                 t.Interrupt();
             }
+        }
+        bool CircleContains(Vector2i position, int radius, Vector2i checkpos)
+        {
+            int dx = Math.Abs(checkpos.X - position.X);
+            int dy = Math.Abs(checkpos.Y - position.Y);
+
+            if(dx > radius)
+                return false;
+            if(dy > radius)
+                return false;
+            if (dx + dy <= radius)
+                return true;
+            return false;
         }
     }
     public class DrawingSurface : System.Windows.Forms.Control
