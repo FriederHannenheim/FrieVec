@@ -63,15 +63,15 @@ namespace FrieVec
 
             Button LineButton = CreateButton.NewButton(new System.Drawing.Size((int)(1 * Dpc), (int)(1*Dpc)), new System.Drawing.Point(0, 0), System.Drawing.Image.FromFile(SolutionLoc + "Assets/Line.png"), System.Drawing.Color.FromArgb(30, 30, 30));
             Panel.Controls.Add(LineButton);
-            LineButton.Click += new EventHandler(sLine);
+            LineButton.Click += (sender,e) => Select(sender,e,"line");
 
             Button FillButton = CreateButton.NewButton(new System.Drawing.Size((int)(1 * Dpc), (int)(1 * Dpc)),new System.Drawing.Point(0,(int)(1 * Dpc)), System.Drawing.Image.FromFile(SolutionLoc + "Assets/floodfill.png"), System.Drawing.Color.FromArgb(30, 30, 30),ImageLayout.Center);
             Panel.Controls.Add(FillButton);
-            FillButton.Click += new EventHandler(sFill);
+            FillButton.Click += (sender, e) => Select(sender, e, "fill");
 
             Button Circlebutton = CreateButton.NewButton(new System.Drawing.Size((int)(1 * Dpc), (int)(1 * Dpc)), new System.Drawing.Point(0,(int)(2 * Dpc)), System.Drawing.Image.FromFile(SolutionLoc + "Assets/Circle.png"), System.Drawing.Color.FromArgb(30, 30, 30),ImageLayout.Stretch);
             Panel.Controls.Add(Circlebutton);
-            Circlebutton.Click += new EventHandler(sCircle);
+            Circlebutton.Click += (sender, e) => Select(sender, e, "circle");
 
             Button TextButton = CreateButton.NewButton(new System.Drawing.Size((int)(1 * Dpc), (int)(1 * Dpc)), new System.Drawing.Point(0,(int)(3 * Dpc)), System.Drawing.Image.FromFile(SolutionLoc + "Assets/Input.png"), System.Drawing.Color.FromArgb(30, 30, 30));
             Panel.Controls.Add(TextButton);
@@ -133,11 +133,12 @@ namespace FrieVec
                             new Vector2f(int.Parse(ccommand[3]), int.Parse(ccommand[4])),
                             new Vector2f(int.Parse(ccommand[5]), int.Parse(ccommand[6])),
                             new Vector2f(int.Parse(ccommand[7]), int.Parse(ccommand[8])),
-                            new Color(Convert.ToByte(int.Parse(ccommand[9])), Convert.ToByte(int.Parse(ccommand[10])), Convert.ToByte(int.Parse(ccommand[10]))),
+                            new Color(Convert.ToByte(int.Parse(ccommand[9])), Convert.ToByte(int.Parse(ccommand[10])), Convert.ToByte(int.Parse(ccommand[11]))),
                             ref image);
                         break;
                 }
             }
+            //Imageutillity.DrawBezier(new Vector2f(100, 100), new Vector2f(900, 900), new Vector2f(300, 150), new Vector2f(100, 50), Color.White, ref image);
             Rotation = 0;
             Click += Form1_Click;
             while (Visible)
@@ -291,20 +292,10 @@ namespace FrieVec
 
         }
 
-        private void sLine(object sender, EventArgs e)
+        private void Select(object sender, EventArgs e,String sel)
         {
-            selected = "line";
+            selected = sel;
             drawing = false;
-        }
-        private void sFill(object sender, EventArgs e)
-        {
-            selected = "fill";
-            drawing = false;
-        }
-        private void sCircle(object sender, EventArgs e)
-        {
-            selected = "circle";
-            drawing = true;
         }
         private void CP(object sender, EventArgs e)
         {
