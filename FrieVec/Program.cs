@@ -25,7 +25,7 @@ namespace FrieVec
     public class Form1 : Form
     {
         float SizeFactor = 1.5f;
-        public static String SolutionLoc = "C:\\Users\\Chef\\Desktop\\FrieVec\\";
+        public static String SolutionLoc = "D:\\C#\\FrieVec\\";
 
         string LockedOn = "";
         float Dpc;
@@ -119,7 +119,7 @@ namespace FrieVec
             {
 
                 String[] ccommand = cmds[i].Split(',');
-                Console.WriteLine(ccommand[0]);
+
                 switch (ccommand[0])
                 {
                     case "l":
@@ -137,6 +137,10 @@ namespace FrieVec
                         Imageutils.DrawText(int.Parse(ccommand[1]), int.Parse(ccommand[2]), ccommand[3], float.Parse(ccommand[4], CultureInfo.InvariantCulture), new Color(Convert.ToByte(int.Parse(ccommand[5])), Convert.ToByte(int.Parse(ccommand[6])), Convert.ToByte(int.Parse(ccommand[7]))), ref t, ref Lüscht, Rotation);
                         break;
                     case "b":
+                        for (int e = 0; e < ccommand.Count(); e++)
+                        {
+                            Console.Write(ccommand[e] + " i=" + e + " ");
+                        }
                         Imageutils.DrawBezier(
                             new Vector2f(int.Parse(ccommand[1]), int.Parse(ccommand[2])),
                             new Vector2f(int.Parse(ccommand[3]), int.Parse(ccommand[4])),
@@ -147,7 +151,6 @@ namespace FrieVec
                         break;
                 }
             }
-            Imageutils.DrawBezier(new Vector2f(100, 100), new Vector2f(900, 900), new Vector2f(300, 150), new Vector2f(100, 50), Color.White, ref image);
             Rotation = 0;
             Click += Form1_Click;
             while (Visible)
@@ -386,7 +389,7 @@ namespace FrieVec
                 }
                 else if (selected == "bezier" && bezierFin)
                 {
-                    if (CircleContains((Vector2i)p1b,(int)(Dpc * 0.25f),Mouse.GetPosition(window)))
+                    if (CircleContains((Vector2i)p1b, (int)(Dpc * 0.25f), Mouse.GetPosition(window)))
                     {
                         if (LockedOn != "p1r")
                             LockedOn = "p1r";
@@ -405,6 +408,7 @@ namespace FrieVec
                     drawing = false;
                     bezierFin = false;
                     Imageutils.DrawBezier(startb, endb, p1b, p2b, selColor, ref image);
+                    cmds.Add(String.Format("b,{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}", startb.X, startb.Y, endb.X, endb.Y, p1b.X, p1b.Y, p2b.X, p2b.Y, selColor.R, selColor.G, selColor.B));
                 }
 
             }
@@ -496,9 +500,9 @@ namespace FrieVec
             int dx = Math.Abs(checkpos.X - position.X);
             int dy = Math.Abs(checkpos.Y - position.Y);
 
-            if(dx > radius)
+            if (dx > radius)
                 return false;
-            if(dy > radius)
+            if (dy > radius)
                 return false;
             if (dx + dy <= radius)
                 return true;
