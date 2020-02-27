@@ -35,12 +35,22 @@ namespace FrieVec_remaster
             window = new RenderWindow(DrawS.Handle);
             window.MouseButtonPressed += new System.EventHandler<MouseButtonEventArgs>(window_mousedown);
             window.MouseWheelScrolled += new System.EventHandler<MouseWheelScrollEventArgs>(window_scroll);
-
-            //Read commands from file
-            using (StreamReader filestream = new StreamReader("test.frvc"))
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.Multiselect = false;
+            if (dialog.ShowDialog() == DialogResult.OK)
             {
-                commands = filestream.ReadToEnd().Split(';');
+                using (StreamReader filestream = new StreamReader(dialog.FileName))
+                {
+                    commands = filestream.ReadToEnd().Split(';');
+                }
             }
+            else
+            {
+                MessageBox.Show("No file selected");
+                return;
+            }
+            //Read commands from file
+
             //Parse commands and add them to sprites
             for (int i = 0; i < commands.Length; i++)
             {
@@ -148,7 +158,7 @@ namespace FrieVec_remaster
             if (current.drawable == null || e.Button == Mouse.Button.Right)
             {
                 
-                if (e.Button == Mouse.Button.Right)
+                if (e.Button == Mouse.Button.Right && current.drawable != null)
                     sprites.Add(current.drawable);
                 
                 switch (Selected)
